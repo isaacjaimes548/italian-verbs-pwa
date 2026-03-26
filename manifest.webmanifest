@@ -3,7 +3,7 @@
   "short_name": "Italian Quiz",
   "description": "Quiz PWA para practicar verbos italianos en presente, pasado y futuro.",
   "lang": "es",
-  "start_url": "./italian_verbs_quiz_pwa.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f5f7fa",
