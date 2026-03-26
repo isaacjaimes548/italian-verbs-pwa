@@ -1,7 +1,7 @@
-const CACHE_NAME = "italian-verbs-quiz-v1";
+const CACHE_NAME = "italian-verbs-quiz-v2";
 const APP_SHELL = [
   "./",
-  "./italian_verbs_quiz_pwa.html",
+  "./index.html",
   "./manifest.webmanifest",
   "./icon-192.png",
   "./icon-512.png"
@@ -44,7 +44,7 @@ self.addEventListener("fetch", (event) => {
         })
         .catch(() => {
           if (event.request.mode === "navigate") {
-            return caches.match("./italian_verbs_quiz_pwa.html");
+            return caches.match("./index.html");
           }
         });
     })
