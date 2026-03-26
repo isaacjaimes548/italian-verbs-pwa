@@ -1,0 +1,877 @@
+<!doctype html>
+<html lang="es" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Italian Verbs Quiz</title>
+  <meta name="theme-color" content="#2c3e50">
+  <meta name="description" content="Quiz PWA para practicar verbos italianos en presente, pasado y futuro.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Italian Verbs Quiz">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+    <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .quiz-container {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      background: linear-gradient(to right, #2c3e50, #34495e);
+      color: white;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      font-size: 0.95rem;
+      opacity: 0.9;
+    }
+
+    .quiz-wrapper {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem 1.5rem;
+      overflow-y: auto;
+    }
+
+    .quiz-content {
+      max-width: 600px;
+      width: 100%;
+    }
+
+    .progress-bar {
+      background: #ecf0f1;
+      height: 8px;
+      border-radius: 4px;
+      margin-bottom: 2rem;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      background: linear-gradient(to right, #3498db, #2ecc71);
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+
+    .question-card {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+    }
+
+    .verb-display {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .verb-text {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #3498db;
+      margin-bottom: 0.5rem;
+    }
+
+    .question-label {
+      font-size: 0.9rem;
+      color: #7f8c8d;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .options-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .option-btn {
+      padding: 1rem;
+      border: 2px solid #bdc3c7;
+      border-radius: 8px;
+      background: white;
+      color: #2c3e50;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      text-align: left;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: #3498db;
+      background: #ecf0f1;
+      transform: translateX(4px);
+    }
+
+    .option-btn:disabled {
+      cursor: not-allowed;
+    }
+
+    .option-btn.correct {
+      background: #2ecc71;
+      color: white;
+      border-color: #27ae60;
+    }
+
+    .option-btn.incorrect {
+      background: #e74c3c;
+      color: white;
+      border-color: #c0392b;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .modal-header {
+      border-bottom: 3px solid #3498db;
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-header h3 {
+      font-size: 1.5rem;
+      color: #2c3e50;
+      font-weight: 700;
+    }
+
+    .modal-body {
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-label {
+      font-weight: 600;
+      color: #2c3e50;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      color: #7f8c8d;
+      letter-spacing: 0.5px;
+    }
+
+    .modal-content {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-left: 4px solid #3498db;
+      border-radius: 4px;
+      color: #34495e;
+      line-height: 1.6;
+    }
+
+    .close-modal {
+      background: linear-gradient(to right, #3498db, #2980b9);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      width: 100%;
+      font-size: 1rem;
+    }
+
+    .close-modal:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(52, 152, 219, 0.3);
+    }
+
+    .completion-screen {
+      text-align: center;
+      padding: 2rem;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .completion-screen h2 {
+      font-size: 2rem;
+      color: #2ecc71;
+      margin-bottom: 1rem;
+      font-weight: 700;
+    }
+
+    .completion-screen p {
+      font-size: 1.1rem;
+      color: #34495e;
+      margin-bottom: 2rem;
+    }
+
+    .restart-btn {
+      background: linear-gradient(to right, #3498db, #2980b9);
+      color: white;
+      border: none;
+      padding: 0.75rem 2rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .restart-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(52, 152, 219, 0.3);
+    }
+
+    .restart-btn:active {
+      transform: translateY(0);
+    }
+
+    .mode-card {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 3px solid transparent;
+    }
+
+    .mode-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      border-color: #3498db;
+    }
+
+    .mode-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 0.5rem;
+    }
+
+    .mode-description {
+      font-size: 1rem;
+      color: #7f8c8d;
+    }
+
+    .back-btn {
+      background: #95a5a6;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    .back-btn:hover {
+      background: #7f8c8d;
+      transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 1.5rem;
+      }
+
+      .verb-text {
+        font-size: 2rem;
+      }
+
+      .modal {
+        width: 95%;
+      }
+    }
+  </style>
+ </head>
+ <body class="h-full">
+  <div class="quiz-container h-full">
+   <div class="header">
+    <h1 id="game-title">Italian Verbs Quiz</h1>
+    <p id="instructions">Selecciona la traducción correcta al español</p>
+   </div>
+   <div class="quiz-wrapper">
+    <div class="quiz-content">
+     <div id="mode-selector" style="display: flex; flex-direction: column; gap: 1.5rem;">
+      <div class="mode-card" onclick="startQuiz('basico')">
+       <div class="mode-title">Modo Básico</div>
+       <div class="mode-description">Practica verbos en presente</div>
+      </div>
+      <div class="mode-card" onclick="startQuiz('pasado')">
+       <div class="mode-title">Modo Pasado</div>
+       <div class="mode-description">Practica verbos en pasado</div>
+      </div>
+      <div class="mode-card" onclick="startQuiz('futuro')">
+       <div class="mode-title">Modo Futuro</div>
+       <div class="mode-description">Practica verbos en futuro</div>
+      </div>
+     </div>
+     <div id="quiz-mode" style="display: none;">
+      <div class="progress-bar">
+       <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+      </div>
+      <div id="quiz-area"></div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <div class="modal-overlay" id="modal-overlay">
+   <div class="modal">
+    <div class="modal-header">
+     <h3 id="modal-title"></h3>
+    </div>
+    <div class="modal-body">
+     <div class="modal-label">Uso:</div>
+     <div class="modal-content" id="modal-usage"></div>
+     <div class="modal-label">Esempio:</div>
+     <div class="modal-content" id="modal-example"></div>
+    </div>
+    <button class="close-modal" onclick="closeModal()">Continua</button>
+   </div>
+  </div>
+  <script>
+    const defaultConfig = {
+      game_title: "Italian Verbs Quiz",
+      instructions_text: "Selecciona la traducción correcta al español",
+      completion_message: "¡Complimenti! ¡Has completado el quiz!"
+    };
+
+    let config = { ...defaultConfig };
+    let quizState = {
+      currentQuestion: 0,
+      answered: [],
+      currentAnswering: false,
+      currentMode: null
+    };
+
+    // MODO BÁSICO: se muestra la forma conjugada en PRESENTE y se pregunta su significado en español
+    const verbDataBasico = [
+      { id: 1,   verb: "parlo",        spanish: "Hablo",             tense: "Presente indicativo", usage: "Se usa para expresar una acción que ocurre en el presente.", example: "Parlo con il direttore. (Hablo con el director.)" },
+      { id: 2,   verb: "mangio",       spanish: "Como",              tense: "Presente indicativo", usage: "Se usa para expresar una acción presente.", example: "Mangio la pizza. (Como la pizza.)" },
+      { id: 3,   verb: "vado",         spanish: "Voy",               tense: "Presente indicativo", usage: "Se usa para expresar un desplazamiento en el presente.", example: "Vado al cinema. (Voy al cine.)" },
+      { id: 4,   verb: "leggo",        spanish: "Leo",               tense: "Presente indicativo", usage: "Se usa para expresar una acción de lectura presente.", example: "Leggo il libro. (Leo el libro.)" },
+      { id: 5,   verb: "scrivo",       spanish: "Escribo",           tense: "Presente indicativo", usage: "Se usa para expresar una acción de escritura presente.", example: "Scrivo l'email. (Escribo el correo.)" },
+      { id: 6,   verb: "finisco",      spanish: "Termino",           tense: "Presente indicativo", usage: "Se usa para expresar que algo se está terminando.", example: "Finisco il progetto. (Termino el proyecto.)" },
+      { id: 7,   verb: "dormo",        spanish: "Duermo",            tense: "Presente indicativo", usage: "Se usa para expresar que alguien está durmiendo.", example: "Dormo bene. (Duermo bien.)" },
+      { id: 8,   verb: "bevo",         spanish: "Bebo",              tense: "Presente indicativo", usage: "Se usa para expresar una acción de beber presente.", example: "Bevo un caffè. (Bebo un café.)" },
+      { id: 9,   verb: "vengo",        spanish: "Vengo",             tense: "Presente indicativo", usage: "Se usa para indicar que alguien viene.", example: "Vengo alla festa. (Vengo a la fiesta.)" },
+      { id: 10,  verb: "do",           spanish: "Doy",               tense: "Presente indicativo", usage: "Se usa para expresar una acción de dar presente.", example: "Ti do il libro. (Te doy el libro.)" },
+      { id: 11,  verb: "faccio",       spanish: "Hago",              tense: "Presente indicativo", usage: "Se usa para expresar una acción presente.", example: "Faccio il lavoro. (Hago el trabajo.)" },
+      { id: 12,  verb: "sto",          spanish: "Estoy",             tense: "Presente indicativo", usage: "Se usa para indicar dónde se está.", example: "Sto a casa. (Estoy en casa.)" },
+      { id: 13,  verb: "ho",           spanish: "Tengo",             tense: "Presente indicativo", usage: "Se usa para expresar posesión presente.", example: "Ho tempo libero. (Tengo tiempo libre.)" },
+      { id: 14,  verb: "sono",         spanish: "Soy / Estoy",       tense: "Presente indicativo", usage: "Se usa para expresar un estado presente.", example: "Sono felice. (Soy feliz.)" },
+      { id: 15,  verb: "canto",        spanish: "Canto",             tense: "Presente indicativo", usage: "Se usa para expresar una acción de canto presente.", example: "Canto una canzone. (Canto una canción.)" },
+      { id: 16,  verb: "ballo",        spanish: "Bailo",             tense: "Presente indicativo", usage: "Se usa para expresar que se está bailando.", example: "Ballo tutta la notte. (Bailo toda la noche.)" },
+      { id: 17,  verb: "gioco",        spanish: "Juego",             tense: "Presente indicativo", usage: "Se usa para expresar una acción de juego presente.", example: "Gioco a calcio. (Juego al fútbol.)" },
+      { id: 18,  verb: "lavoro",       spanish: "Trabajo",           tense: "Presente indicativo", usage: "Se usa para expresar que se está trabajando.", example: "Lavoro tutto il giorno. (Trabajo todo el día.)" },
+      { id: 19,  verb: "corro",        spanish: "Corro",             tense: "Presente indicativo", usage: "Se usa para expresar una acción de correr presente.", example: "Corro al parco. (Corro al parque.)" },
+      { id: 20,  verb: "cammino",      spanish: "Camino",            tense: "Presente indicativo", usage: "Se usa para expresar que se está caminando.", example: "Cammino per la città. (Camino por la ciudad.)" },
+      { id: 21,  verb: "guido",        spanish: "Conduzco",          tense: "Presente indicativo", usage: "Se usa para expresar una acción de conducción presente.", example: "Guido la macchina. (Conduzco el coche.)" },
+      { id: 22,  verb: "volo",         spanish: "Vuelo",             tense: "Presente indicativo", usage: "Se usa para indicar que se está volando.", example: "Volo a Roma. (Vuelo a Roma.)" },
+      { id: 23,  verb: "nuoto",        spanish: "Nado",              tense: "Presente indicativo", usage: "Se usa para expresar una acción de nado presente.", example: "Nuoto al mare. (Nado en el mar.)" },
+      { id: 24,  verb: "suono",        spanish: "Toco (música)",     tense: "Presente indicativo", usage: "Se usa para expresar que se está tocando un instrumento.", example: "Suono il pianoforte. (Toco el piano.)" },
+      { id: 25,  verb: "disegno",      spanish: "Dibujo",            tense: "Presente indicativo", usage: "Se usa para expresar que se está dibujando.", example: "Disegno un quadro. (Dibujo un cuadro.)" },
+      { id: 26,  verb: "dipingo",      spanish: "Pinto",             tense: "Presente indicativo", usage: "Se usa para expresar que se está pintando.", example: "Dipingo la casa. (Pinto la casa.)" },
+      { id: 27,  verb: "compro",       spanish: "Compro",            tense: "Presente indicativo", usage: "Se usa para expresar una compra presente.", example: "Compro un libro. (Compro un libro.)" },
+      { id: 28,  verb: "vendo",        spanish: "Vendo",             tense: "Presente indicativo", usage: "Se usa para expresar una venta presente.", example: "Vendo la macchina. (Vendo el coche.)" },
+      { id: 29,  verb: "apro",         spanish: "Abro",              tense: "Presente indicativo", usage: "Se usa para expresar que se está abriendo algo.", example: "Apro la porta. (Abro la puerta.)" },
+      { id: 30,  verb: "chiudo",       spanish: "Cierro",            tense: "Presente indicativo", usage: "Se usa para expresar que se está cerrando algo.", example: "Chiudo la finestra. (Cierro la ventana.)" },
+      { id: 31,  verb: "perdo",        spanish: "Pierdo",            tense: "Presente indicativo", usage: "Se usa para expresar una pérdida presente.", example: "Perdo l'occasione. (Pierdo la oportunidad.)" },
+      { id: 32,  verb: "trovo",        spanish: "Encuentro",         tense: "Presente indicativo", usage: "Se usa para expresar que se ha encontrado algo.", example: "Trovo la soluzione. (Encuentro la solución.)" },
+      { id: 33,  verb: "cerco",        spanish: "Busco",             tense: "Presente indicativo", usage: "Se usa para expresar que se está buscando algo.", example: "Cerco il libro. (Busco el libro.)" },
+      { id: 34,  verb: "ricordo",      spanish: "Recuerdo",          tense: "Presente indicativo", usage: "Se usa para expresar que se recuerda algo.", example: "Mi ricordo di te. (Me acuerdo de ti.)" },
+      { id: 35,  verb: "dimentico",    spanish: "Olvido",            tense: "Presente indicativo", usage: "Se usa para expresar que se olvida algo.", example: "Dimentico questo giorno. (Olvido este día.)" },
+      { id: 36,  verb: "capisco",      spanish: "Entiendo",          tense: "Presente indicativo", usage: "Se usa para expresar que se entiende algo.", example: "Capisco tutto. (Entiendo todo.)" },
+      { id: 37,  verb: "spiego",       spanish: "Explico",           tense: "Presente indicativo", usage: "Se usa para expresar que se está explicando algo.", example: "Ti spiego come funziona. (Te explico cómo funciona.)" },
+      { id: 38,  verb: "insegno",      spanish: "Enseño",            tense: "Presente indicativo", usage: "Se usa para expresar que se está enseñando algo.", example: "Insegno l'italiano. (Enseño italiano.)" },
+      { id: 39,  verb: "imparo",       spanish: "Aprendo",           tense: "Presente indicativo", usage: "Se usa para expresar que se está aprendiendo algo.", example: "Imparo il francese. (Aprendo francés.)" },
+      { id: 40,  verb: "penso",        spanish: "Pienso",            tense: "Presente indicativo", usage: "Se usa para expresar que se está pensando en algo.", example: "Penso a te. (Pienso en ti.)" },
+      { id: 41,  verb: "credo",        spanish: "Creo",              tense: "Presente indicativo", usage: "Se usa para expresar que se cree algo.", example: "Credo a quello che dici. (Creo lo que dices.)" },
+      { id: 42,  verb: "desidero",     spanish: "Deseo",             tense: "Presente indicativo", usage: "Se usa para expresar un deseo presente.", example: "Desidero vederti. (Deseo verte.)" },
+      { id: 43,  verb: "amo",          spanish: "Amo",               tense: "Presente indicativo", usage: "Se usa para expresar amor presente.", example: "Ti amo. (Te amo.)" },
+      { id: 44,  verb: "odio",         spanish: "Odio",              tense: "Presente indicativo", usage: "Se usa para expresar odio presente.", example: "Non odio nessuno. (No odio a nadie.)" },
+      { id: 45,  verb: "rido",         spanish: "Río",               tense: "Presente indicativo", usage: "Se usa para expresar que se está riendo.", example: "Rido insieme a te. (Me río contigo.)" },
+      { id: 46,  verb: "piango",       spanish: "Lloro",             tense: "Presente indicativo", usage: "Se usa para expresar que se está llorando.", example: "Non piango più. (No lloro más.)" },
+      { id: 47,  verb: "sorrido",      spanish: "Sonrío",            tense: "Presente indicativo", usage: "Se usa para expresar que se está sonriendo.", example: "Sorrido sempre. (Siempre sonrío.)" },
+      { id: 48,  verb: "tocco",        spanish: "Toco",              tense: "Presente indicativo", usage: "Se usa para expresar que se está tocando algo.", example: "Tocco il muro. (Toco la pared.)" },
+      { id: 49,  verb: "salto",        spanish: "Salto",             tense: "Presente indicativo", usage: "Se usa para expresar que se está saltando.", example: "Salto la corda. (Salto la cuerda.)" },
+      { id: 50,  verb: "urlo",         spanish: "Grito",             tense: "Presente indicativo", usage: "Se usa para expresar que se está gritando.", example: "Non urlo più. (No grito más.)" },
+      { id: 51,  verb: "conosco",      spanish: "Conozco",           tense: "Presente indicativo", usage: "Se usa para expresar que se conoce a alguien o algo.", example: "Conosco bene Roma. (Conozco bien Roma.)" },
+      { id: 52,  verb: "so",           spanish: "Sé",                tense: "Presente indicativo", usage: "Se usa para expresar conocimiento o habilidad.", example: "So parlare italiano. (Sé hablar italiano.)" },
+      { id: 53,  verb: "posso",        spanish: "Puedo",             tense: "Presente indicativo", usage: "Se usa para expresar capacidad o permiso.", example: "Posso aiutarti. (Puedo ayudarte.)" },
+      { id: 54,  verb: "voglio",       spanish: "Quiero",            tense: "Presente indicativo", usage: "Se usa para expresar deseo o voluntad.", example: "Voglio un caffè. (Quiero un café.)" },
+      { id: 55,  verb: "devo",         spanish: "Debo",              tense: "Presente indicativo", usage: "Se usa para expresar obligación.", example: "Devo studiare. (Debo estudiar.)" },
+      { id: 56,  verb: "sento",        spanish: "Siento / Escucho",  tense: "Presente indicativo", usage: "Se usa para expresar percepción sensorial.", example: "Sento la musica. (Escucho la música.)" },
+      { id: 57,  verb: "vedo",         spanish: "Veo",               tense: "Presente indicativo", usage: "Se usa para expresar la acción de ver.", example: "Vedo il mare. (Veo el mar.)" },
+      { id: 58,  verb: "aspetto",      spanish: "Espero",            tense: "Presente indicativo", usage: "Se usa para expresar que se está esperando algo.", example: "Aspetto il treno. (Espero el tren.)" },
+      { id: 59,  verb: "parto",        spanish: "Parto / Salgo",     tense: "Presente indicativo", usage: "Se usa para indicar que se parte hacia un lugar.", example: "Parto domani. (Salgo mañana.)" },
+      { id: 60,  verb: "arrivo",       spanish: "Llego",             tense: "Presente indicativo", usage: "Se usa para expresar que se llega a un lugar.", example: "Arrivo alle otto. (Llego a las ocho.)" },
+      { id: 61,  verb: "entro",        spanish: "Entro",             tense: "Presente indicativo", usage: "Se usa para expresar que se entra en un lugar.", example: "Entro in casa. (Entro en casa.)" },
+      { id: 62,  verb: "esco",         spanish: "Salgo",             tense: "Presente indicativo", usage: "Se usa para expresar que se sale de un lugar.", example: "Esco alle sei. (Salgo a las seis.)" },
+      { id: 63,  verb: "torno",        spanish: "Vuelvo",            tense: "Presente indicativo", usage: "Se usa para expresar que se regresa a un lugar.", example: "Torno a casa. (Vuelvo a casa.)" },
+      { id: 64,  verb: "rimango",      spanish: "Me quedo",          tense: "Presente indicativo", usage: "Se usa para expresar que uno permanece en un lugar.", example: "Rimango qui. (Me quedo aquí.)" },
+      { id: 65,  verb: "porto",        spanish: "Llevo / Traigo",    tense: "Presente indicativo", usage: "Se usa para expresar que se lleva algo a algún lugar.", example: "Porto i bagagli. (Llevo el equipaje.)" },
+      { id: 66,  verb: "prendo",       spanish: "Tomo / Cojo",       tense: "Presente indicativo", usage: "Se usa para expresar la acción de tomar o coger algo.", example: "Prendo il caffè. (Tomo el café.)" },
+      { id: 67,  verb: "metto",        spanish: "Pongo",             tense: "Presente indicativo", usage: "Se usa para expresar que se coloca algo en algún sitio.", example: "Metto il libro sul tavolo. (Pongo el libro en la mesa.)" },
+      { id: 68,  verb: "tolgo",        spanish: "Quito",             tense: "Presente indicativo", usage: "Se usa para expresar que se retira algo de un lugar.", example: "Tolgo il cappotto. (Me quito el abrigo.)" },
+      { id: 69,  verb: "cambio",       spanish: "Cambio",            tense: "Presente indicativo", usage: "Se usa para expresar una acción de cambio presente.", example: "Cambio idea. (Cambio de idea.)" },
+      { id: 70,  verb: "uso",          spanish: "Uso",               tense: "Presente indicativo", usage: "Se usa para expresar que se utiliza algo.", example: "Uso il computer. (Uso el ordenador.)" },
+      { id: 71,  verb: "chiedo",       spanish: "Pido / Pregunto",   tense: "Presente indicativo", usage: "Se usa para expresar que se pide o pregunta algo.", example: "Chiedo informazioni. (Pido información.)" },
+      { id: 72,  verb: "rispondo",     spanish: "Respondo",          tense: "Presente indicativo", usage: "Se usa para expresar que se responde a algo.", example: "Rispondo al messaggio. (Respondo al mensaje.)" },
+      { id: 73,  verb: "pago",         spanish: "Pago",              tense: "Presente indicativo", usage: "Se usa para expresar una acción de pago presente.", example: "Pago il conto. (Pago la cuenta.)" },
+      { id: 74,  verb: "ricevo",       spanish: "Recibo",            tense: "Presente indicativo", usage: "Se usa para expresar que se recibe algo.", example: "Ricevo una lettera. (Recibo una carta.)" },
+      { id: 75,  verb: "mando",        spanish: "Envío",             tense: "Presente indicativo", usage: "Se usa para expresar que se envía algo.", example: "Mando un messaggio. (Envío un mensaje.)" },
+      { id: 76,  verb: "chiamo",       spanish: "Llamo",             tense: "Presente indicativo", usage: "Se usa para expresar que se llama a alguien.", example: "Chiamo mia madre. (Llamo a mi madre.)" },
+      { id: 77,  verb: "ascolto",      spanish: "Escucho",           tense: "Presente indicativo", usage: "Se usa para expresar que se presta atención a algo.", example: "Ascolto la radio. (Escucho la radio.)" },
+      { id: 78,  verb: "guardo",       spanish: "Miro",              tense: "Presente indicativo", usage: "Se usa para expresar que se observa algo.", example: "Guardo la televisione. (Miro la televisión.)" },
+      { id: 79,  verb: "aspiro",       spanish: "Aspiro",            tense: "Presente indicativo", usage: "Se usa para expresar aspiración o anhelo.", example: "Aspiro a migliorare. (Aspiro a mejorar.)" },
+      { id: 80,  verb: "costruisco",   spanish: "Construyo",         tense: "Presente indicativo", usage: "Se usa para expresar la acción de construir.", example: "Costruisco una casa. (Construyo una casa.)" },
+      { id: 81,  verb: "distruggo",    spanish: "Destruyo",          tense: "Presente indicativo", usage: "Se usa para expresar la acción de destruir.", example: "Distruggo il documento. (Destruyo el documento.)" },
+      { id: 82,  verb: "pulisco",      spanish: "Limpio",            tense: "Presente indicativo", usage: "Se usa para expresar que se está limpiando algo.", example: "Pulisco la cucina. (Limpio la cocina.)" },
+      { id: 83,  verb: "cucino",       spanish: "Cocino",            tense: "Presente indicativo", usage: "Se usa para expresar que se está cocinando.", example: "Cucino la pasta. (Cocino la pasta.)" },
+      { id: 84,  verb: "mantengo",     spanish: "Mantengo",          tense: "Presente indicativo", usage: "Se usa para expresar que se mantiene algo.", example: "Mantengo la calma. (Mantengo la calma.)" },
+      { id: 85,  verb: "ottengo",      spanish: "Obtengo",           tense: "Presente indicativo", usage: "Se usa para expresar que se obtiene algo.", example: "Ottengo buoni risultati. (Obtengo buenos resultados.)" },
+      { id: 86,  verb: "offro",        spanish: "Ofrezco",           tense: "Presente indicativo", usage: "Se usa para expresar que se ofrece algo.", example: "Offro il caffè. (Ofrezco el café.)" },
+      { id: 87,  verb: "accetto",      spanish: "Acepto",            tense: "Presente indicativo", usage: "Se usa para expresar que se acepta algo.", example: "Accetto la proposta. (Acepto la propuesta.)" },
+      { id: 88,  verb: "rifiuto",      spanish: "Rechazo",           tense: "Presente indicativo", usage: "Se usa para expresar que se rechaza algo.", example: "Rifiuto l'invito. (Rechazo la invitación.)" },
+      { id: 89,  verb: "scelgo",       spanish: "Elijo",             tense: "Presente indicativo", usage: "Se usa para expresar que se elige algo.", example: "Scelgo il vestito. (Elijo el vestido.)" },
+      { id: 90,  verb: "decido",       spanish: "Decido",            tense: "Presente indicativo", usage: "Se usa para expresar que se toma una decisión.", example: "Decido di partire. (Decido partir.)" },
+      { id: 91,  verb: "comincio",     spanish: "Comienzo",          tense: "Presente indicativo", usage: "Se usa para expresar el inicio de una acción.", example: "Comincio a lavorare. (Comienzo a trabajar.)" },
+      { id: 92,  verb: "continuo",     spanish: "Continúo",          tense: "Presente indicativo", usage: "Se usa para expresar que una acción continúa.", example: "Continuo a studiare. (Continúo estudiando.)" },
+      { id: 93,  verb: "smetto",       spanish: "Dejo de / Paro",    tense: "Presente indicativo", usage: "Se usa para expresar que se deja de hacer algo.", example: "Smetto di fumare. (Dejo de fumar.)" },
+      { id: 94,  verb: "aiuto",        spanish: "Ayudo",             tense: "Presente indicativo", usage: "Se usa para expresar que se presta ayuda.", example: "Aiuto mia sorella. (Ayudo a mi hermana.)" },
+      { id: 95,  verb: "visito",       spanish: "Visito",            tense: "Presente indicativo", usage: "Se usa para expresar que se visita un lugar o persona.", example: "Visito il museo. (Visito el museo.)" },
+      { id: 96,  verb: "partecipo",    spanish: "Participo",         tense: "Presente indicativo", usage: "Se usa para expresar que se participa en algo.", example: "Partecipo alla riunione. (Participo en la reunión.)" },
+      { id: 97,  verb: "raggiungo",    spanish: "Alcanzo",           tense: "Presente indicativo", usage: "Se usa para expresar que se alcanza a alguien o algo.", example: "Raggiungo il traguardo. (Alcanzo la meta.)" },
+      { id: 98,  verb: "supero",       spanish: "Supero",            tense: "Presente indicativo", usage: "Se usa para expresar que se supera un obstáculo.", example: "Supero l'esame. (Supero el examen.)" },
+      { id: 99,  verb: "prometto",     spanish: "Prometo",           tense: "Presente indicativo", usage: "Se usa para expresar que se hace una promesa.", example: "Prometto di tornare. (Prometo volver.)" },
+      { id: 100, verb: "sogno",        spanish: "Sueño",             tense: "Presente indicativo", usage: "Se usa para expresar que se sueña con algo.", example: "Sogno un viaggio in Italia. (Sueño con un viaje a Italia.)" }
+    ];
+
+    // MODO PASADO: se muestra la forma conjugada en PASSATO PROSSIMO y se pregunta su significado en español
+    const verbDataPasado = [
+      { id: 1,  verb: "ho parlato",      spanish: "Hablé",          tense: "Passato prossimo", usage: "Se usa para expresar una acción completada en el pasado reciente.", example: "Ho parlato con il direttore. (Hablé con el director.)" },
+      { id: 2,  verb: "ho mangiato",     spanish: "Comí",           tense: "Passato prossimo", usage: "Se usa para indicar una acción completada recientemente.", example: "Ho mangiato la pizza. (Comí la pizza.)" },
+      { id: 3,  verb: "sono andato",     spanish: "Fui",            tense: "Passato prossimo", usage: "Se usa para indicar un desplazamiento en el pasado.", example: "Sono andato al cinema. (Fui al cine.)" },
+      { id: 4,  verb: "ho letto",        spanish: "Leí",            tense: "Passato prossimo", usage: "Se usa para expresar una acción de lectura completada.", example: "Ho letto il libro. (Leí el libro.)" },
+      { id: 5,  verb: "ho scritto",      spanish: "Escribí",        tense: "Passato prossimo", usage: "Se usa para expresar una acción de escritura completada.", example: "Ho scritto l'email. (Escribí el correo.)" },
+      { id: 6,  verb: "ho finito",       spanish: "Terminé",        tense: "Passato prossimo", usage: "Se usa para indicar que una acción ha sido completada.", example: "Ho finito il progetto. (Terminé el proyecto.)" },
+      { id: 7,  verb: "ho dormito",      spanish: "Dormí",          tense: "Passato prossimo", usage: "Se usa para expresar que se ha dormido.", example: "Ho dormito bene. (Dormí bien.)" },
+      { id: 8,  verb: "ho bevuto",       spanish: "Bebí",           tense: "Passato prossimo", usage: "Se usa para expresar una acción de beber completada.", example: "Ho bevuto un caffè. (Bebí un café.)" },
+      { id: 9,  verb: "sono venuto",     spanish: "Vine",           tense: "Passato prossimo", usage: "Se usa para indicar que alguien ha venido.", example: "Sono venuto alla festa. (Vine a la fiesta.)" },
+      { id: 10, verb: "ho dato",         spanish: "Di",             tense: "Passato prossimo", usage: "Se usa para expresar una acción de dar completada.", example: "Ti ho dato il libro. (Te di el libro.)" },
+      { id: 11, verb: "ho fatto",        spanish: "Hice",           tense: "Passato prossimo", usage: "Se usa para expresar una acción completada.", example: "Ho fatto il lavoro. (Hice el trabajo.)" },
+      { id: 12, verb: "sono stato",      spanish: "Estuve",         tense: "Passato prossimo", usage: "Se usa para indicar donde se estuvo.", example: "Sono stato a casa. (Estuve en casa.)" },
+      { id: 13, verb: "ho avuto",        spanish: "Tuve",           tense: "Passato prossimo", usage: "Se usa para expresar posesión en el pasado.", example: "Ho avuto tempo. (Tuve tiempo.)" },
+      { id: 14, verb: "sono stato",      spanish: "Fui",            tense: "Passato prossimo", usage: "Se usa para expresar un estado en el pasado.", example: "Sono stato felice. (Fui feliz.)" },
+      { id: 15, verb: "ho cantato",      spanish: "Canté",          tense: "Passato prossimo", usage: "Se usa para expresar una acción de cantar completada.", example: "Ho cantato una canzone. (Canté una canción.)" },
+      { id: 16, verb: "ho ballato",      spanish: "Bailé",          tense: "Passato prossimo", usage: "Se usa para expresar que se ha bailado.", example: "Ho ballato tutta la notte. (Bailé toda la noche.)" },
+      { id: 17, verb: "ho giocato",      spanish: "Jugué",          tense: "Passato prossimo", usage: "Se usa para expresar una acción de juego completada.", example: "Ho giocato a calcio. (Jugué al fútbol.)" },
+      { id: 18, verb: "ho lavorato",     spanish: "Trabajé",        tense: "Passato prossimo", usage: "Se usa para expresar que se ha trabajado.", example: "Ho lavorato tutto il giorno. (Trabajé todo el día.)" },
+      { id: 19, verb: "ho corso",        spanish: "Corrí",          tense: "Passato prossimo", usage: "Se usa para expresar una acción de correr completada.", example: "Ho corso al parco. (Corrí al parque.)" },
+      { id: 20, verb: "ho camminato",    spanish: "Caminé",         tense: "Passato prossimo", usage: "Se usa para expresar que se ha caminado.", example: "Ho camminato per la città. (Caminé por la ciudad.)" },
+      { id: 21, verb: "ho guidato",      spanish: "Conduje",        tense: "Passato prossimo", usage: "Se usa para expresar una acción de conducir completada.", example: "Ho guidato la macchina. (Conduje el coche.)" },
+      { id: 22, verb: "sono volato",     spanish: "Volé",           tense: "Passato prossimo", usage: "Se usa para indicar que se ha volado.", example: "Sono volato a Roma. (Volé a Roma.)" },
+      { id: 23, verb: "ho nuotato",      spanish: "Nadé",           tense: "Passato prossimo", usage: "Se usa para expresar una acción de nado completada.", example: "Ho nuotato al mare. (Nadé en el mar.)" },
+      { id: 24, verb: "ho suonato",      spanish: "Toqué (música)", tense: "Passato prossimo", usage: "Se usa para expresar que se ha tocado un instrumento.", example: "Ho suonato il pianoforte. (Toqué el piano.)" },
+      { id: 25, verb: "ho disegnato",    spanish: "Dibujé",         tense: "Passato prossimo", usage: "Se usa para expresar que se ha dibujado.", example: "Ho disegnato un quadro. (Dibujé un cuadro.)" },
+      { id: 26, verb: "ho dipinto",      spanish: "Pinté",          tense: "Passato prossimo", usage: "Se usa para expresar que se ha pintado.", example: "Ho dipinto la casa. (Pinté la casa.)" },
+      { id: 27, verb: "ho comprato",     spanish: "Compré",         tense: "Passato prossimo", usage: "Se usa para expresar una compra completada.", example: "Ho comprato un libro. (Compré un libro.)" },
+      { id: 28, verb: "ho venduto",      spanish: "Vendí",          tense: "Passato prossimo", usage: "Se usa para expresar una venta completada.", example: "Ho venduto la macchina. (Vendí el coche.)" },
+      { id: 29, verb: "ho aperto",       spanish: "Abrí",           tense: "Passato prossimo", usage: "Se usa para expresar que se ha abierto algo.", example: "Ho aperto la porta. (Abrí la puerta.)" },
+      { id: 30, verb: "ho chiuso",       spanish: "Cerré",          tense: "Passato prossimo", usage: "Se usa para expresar que se ha cerrado algo.", example: "Ho chiuso la finestra. (Cerré la ventana.)" },
+      { id: 31, verb: "ho perso",        spanish: "Perdí",          tense: "Passato prossimo", usage: "Se usa para expresar una pérdida en el pasado.", example: "Ho perso l'occasione. (Perdí la oportunidad.)" },
+      { id: 32, verb: "ho trovato",      spanish: "Encontré",       tense: "Passato prossimo", usage: "Se usa para expresar que se ha encontrado algo.", example: "Ho trovato la soluzione. (Encontré la solución.)" },
+      { id: 33, verb: "ho cercato",      spanish: "Busqué",         tense: "Passato prossimo", usage: "Se usa para expresar que se ha buscado algo.", example: "Ho cercato il libro. (Busqué el libro.)" },
+      { id: 34, verb: "mi sono ricordato", spanish: "Recordé",      tense: "Passato prossimo", usage: "Se usa para expresar que se ha recordado algo.", example: "Mi sono ricordato di te. (Me acordé de ti.)" },
+      { id: 35, verb: "ho dimenticato",  spanish: "Olvidé",         tense: "Passato prossimo", usage: "Se usa para expresar que se ha olvidado algo.", example: "Ho dimenticato questo giorno. (Olvidé este día.)" },
+      { id: 36, verb: "ho capito",       spanish: "Entendí",        tense: "Passato prossimo", usage: "Se usa para expresar que se ha entendido algo.", example: "Ho capito tutto. (Entendí todo.)" },
+      { id: 37, verb: "ho spiegato",     spanish: "Expliqué",       tense: "Passato prossimo", usage: "Se usa para expresar que se ha explicado algo.", example: "Ti ho spiegato come funziona. (Te expliqué cómo funciona.)" },
+      { id: 38, verb: "ho insegnato",    spanish: "Enseñé",         tense: "Passato prossimo", usage: "Se usa para expresar que se ha enseñado algo.", example: "Ho insegnato l'italiano. (Enseñé italiano.)" },
+      { id: 39, verb: "ho imparato",     spanish: "Aprendí",        tense: "Passato prossimo", usage: "Se usa para expresar que se ha aprendido algo.", example: "Ho imparato il francese. (Aprendí francés.)" },
+      { id: 40, verb: "ho pensato",      spanish: "Pensé",          tense: "Passato prossimo", usage: "Se usa para expresar que se ha pensado en algo.", example: "Ho pensato a te. (Pensé en ti.)" },
+      { id: 41, verb: "ho creduto",      spanish: "Creí",           tense: "Passato prossimo", usage: "Se usa para expresar que se ha creído algo.", example: "Ho creduto a quello che dici. (Creí lo que dices.)" },
+      { id: 42, verb: "ho desiderato",   spanish: "Deseé",          tense: "Passato prossimo", usage: "Se usa para expresar un deseo en el pasado.", example: "Ho desiderato vederti. (Deseé verte.)" },
+      { id: 43, verb: "ho amato",        spanish: "Amé",            tense: "Passato prossimo", usage: "Se usa para expresar amor en el pasado.", example: "Ti ho amato. (Te amé.)" },
+      { id: 44, verb: "ho odiato",       spanish: "Odié",           tense: "Passato prossimo", usage: "Se usa para expresar odio en el pasado.", example: "Non ho odiato nessuno. (No odié a nadie.)" },
+      { id: 45, verb: "ho riso",         spanish: "Reí",            tense: "Passato prossimo", usage: "Se usa para expresar que se ha reído.", example: "Ho riso insieme a te. (Reí contigo.)" },
+      { id: 46, verb: "ho pianto",       spanish: "Lloré",          tense: "Passato prossimo", usage: "Se usa para expresar que se ha llorado.", example: "Non ho più pianto. (No volví a llorar.)" },
+      { id: 47, verb: "ho sorriso",      spanish: "Sonreí",         tense: "Passato prossimo", usage: "Se usa para expresar que se ha sonreído.", example: "Ho sempre sorriso. (Siempre sonreí.)" },
+      { id: 48, verb: "ho toccato",      spanish: "Toqué",          tense: "Passato prossimo", usage: "Se usa para expresar que se ha tocado algo.", example: "Ho toccato il muro. (Toqué la pared.)" },
+      { id: 49,  verb: "ho saltato",          spanish: "Salté",             tense: "Passato prossimo", usage: "Se usa para expresar que se ha saltado.", example: "Ho saltato la corda. (Salté la cuerda.)" },
+      { id: 50,  verb: "ho urlato",           spanish: "Grité",             tense: "Passato prossimo", usage: "Se usa para expresar que se ha gritado.", example: "Non ho più urlato. (No volví a gritar.)" },
+      { id: 51,  verb: "ho conosciuto",       spanish: "Conocí",            tense: "Passato prossimo", usage: "Se usa para expresar que se conoció a alguien.", example: "Ho conosciuto Maria ieri. (Conocí a María ayer.)" },
+      { id: 52,  verb: "ho saputo",           spanish: "Supe",              tense: "Passato prossimo", usage: "Se usa para expresar que se supo algo.", example: "Ho saputo la notizia. (Supe la noticia.)" },
+      { id: 53,  verb: "ho potuto",           spanish: "Pude",              tense: "Passato prossimo", usage: "Se usa para expresar que se pudo hacer algo.", example: "Non ho potuto venire. (No pude venir.)" },
+      { id: 54,  verb: "ho voluto",           spanish: "Quise",             tense: "Passato prossimo", usage: "Se usa para expresar que se quiso algo.", example: "Ho voluto farlo. (Quise hacerlo.)" },
+      { id: 55,  verb: "ho dovuto",           spanish: "Tuve que",          tense: "Passato prossimo", usage: "Se usa para expresar que se tuvo que hacer algo.", example: "Ho dovuto lavorare. (Tuve que trabajar.)" },
+      { id: 56,  verb: "ho sentito",          spanish: "Sentí / Escuché",   tense: "Passato prossimo", usage: "Se usa para expresar que se percibió algo.", example: "Ho sentito la musica. (Escuché la música.)" },
+      { id: 57,  verb: "ho visto",            spanish: "Vi",                tense: "Passato prossimo", usage: "Se usa para expresar que se vio algo.", example: "Ho visto il film. (Vi la película.)" },
+      { id: 58,  verb: "ho aspettato",        spanish: "Esperé",            tense: "Passato prossimo", usage: "Se usa para expresar que se esperó algo.", example: "Ho aspettato il treno. (Esperé el tren.)" },
+      { id: 59,  verb: "sono partito",        spanish: "Partí / Salí",      tense: "Passato prossimo", usage: "Se usa para indicar que se partió hacia un lugar.", example: "Sono partito ieri. (Salí ayer.)" },
+      { id: 60,  verb: "sono arrivato",       spanish: "Llegué",            tense: "Passato prossimo", usage: "Se usa para expresar que se llegó a un lugar.", example: "Sono arrivato tardi. (Llegué tarde.)" },
+      { id: 61,  verb: "sono entrato",        spanish: "Entré",             tense: "Passato prossimo", usage: "Se usa para expresar que se entró en un lugar.", example: "Sono entrato in casa. (Entré en casa.)" },
+      { id: 62,  verb: "sono uscito",         spanish: "Salí",              tense: "Passato prossimo", usage: "Se usa para expresar que se salió de un lugar.", example: "Sono uscito presto. (Salí temprano.)" },
+      { id: 63,  verb: "sono tornato",        spanish: "Volví",             tense: "Passato prossimo", usage: "Se usa para expresar que se regresó a un lugar.", example: "Sono tornato a casa. (Volví a casa.)" },
+      { id: 64,  verb: "sono rimasto",        spanish: "Me quedé",          tense: "Passato prossimo", usage: "Se usa para expresar que uno permaneció en un lugar.", example: "Sono rimasto qui. (Me quedé aquí.)" },
+      { id: 65,  verb: "ho portato",          spanish: "Llevé / Traje",     tense: "Passato prossimo", usage: "Se usa para expresar que se llevó algo.", example: "Ho portato i bagagli. (Llevé el equipaje.)" },
+      { id: 66,  verb: "ho preso",            spanish: "Tomé / Cogí",       tense: "Passato prossimo", usage: "Se usa para expresar la acción de tomar o coger algo.", example: "Ho preso il caffè. (Tomé el café.)" },
+      { id: 67,  verb: "ho messo",            spanish: "Puse",              tense: "Passato prossimo", usage: "Se usa para expresar que se colocó algo en un sitio.", example: "Ho messo il libro sul tavolo. (Puse el libro en la mesa.)" },
+      { id: 68,  verb: "ho cambiato",         spanish: "Cambié",            tense: "Passato prossimo", usage: "Se usa para expresar una acción de cambio completada.", example: "Ho cambiato idea. (Cambié de idea.)" },
+      { id: 69,  verb: "ho usato",            spanish: "Usé",               tense: "Passato prossimo", usage: "Se usa para expresar que se utilizó algo.", example: "Ho usato il computer. (Usé el ordenador.)" },
+      { id: 70,  verb: "ho chiesto",          spanish: "Pedí / Pregunté",   tense: "Passato prossimo", usage: "Se usa para expresar que se pidió o preguntó algo.", example: "Ho chiesto informazioni. (Pedí información.)" },
+      { id: 71,  verb: "ho risposto",         spanish: "Respondí",          tense: "Passato prossimo", usage: "Se usa para expresar que se respondió a algo.", example: "Ho risposto al messaggio. (Respondí al mensaje.)" },
+      { id: 72,  verb: "ho pagato",           spanish: "Pagué",             tense: "Passato prossimo", usage: "Se usa para expresar una acción de pago completada.", example: "Ho pagato il conto. (Pagué la cuenta.)" },
+      { id: 73,  verb: "ho ricevuto",         spanish: "Recibí",            tense: "Passato prossimo", usage: "Se usa para expresar que se recibió algo.", example: "Ho ricevuto una lettera. (Recibí una carta.)" },
+      { id: 74,  verb: "ho mandato",          spanish: "Envié",             tense: "Passato prossimo", usage: "Se usa para expresar que se envió algo.", example: "Ho mandato un messaggio. (Envié un mensaje.)" },
+      { id: 75,  verb: "ho chiamato",         spanish: "Llamé",             tense: "Passato prossimo", usage: "Se usa para expresar que se llamó a alguien.", example: "Ho chiamato mia madre. (Llamé a mi madre.)" },
+      { id: 76,  verb: "ho ascoltato",        spanish: "Escuché",           tense: "Passato prossimo", usage: "Se usa para expresar que se prestó atención a algo.", example: "Ho ascoltato la radio. (Escuché la radio.)" },
+      { id: 77,  verb: "ho guardato",         spanish: "Miré",              tense: "Passato prossimo", usage: "Se usa para expresar que se observó algo.", example: "Ho guardato la televisione. (Miré la televisión.)" },
+      { id: 78,  verb: "ho costruito",        spanish: "Construí",          tense: "Passato prossimo", usage: "Se usa para expresar que se construyó algo.", example: "Ho costruito una casa. (Construí una casa.)" },
+      { id: 79,  verb: "ho pulito",           spanish: "Limpié",            tense: "Passato prossimo", usage: "Se usa para expresar que se limpió algo.", example: "Ho pulito la cucina. (Limpié la cocina.)" },
+      { id: 80,  verb: "ho cucinato",         spanish: "Cociné",            tense: "Passato prossimo", usage: "Se usa para expresar que se cocinó algo.", example: "Ho cucinato la pasta. (Cociné la pasta.)" },
+      { id: 81,  verb: "ho ottenuto",         spanish: "Obtuve",            tense: "Passato prossimo", usage: "Se usa para expresar que se obtuvo algo.", example: "Ho ottenuto buoni risultati. (Obtuve buenos resultados.)" },
+      { id: 82,  verb: "ho offerto",          spanish: "Ofrecí",            tense: "Passato prossimo", usage: "Se usa para expresar que se ofreció algo.", example: "Ho offerto il caffè. (Ofrecí el café.)" },
+      { id: 83,  verb: "ho accettato",        spanish: "Acepté",            tense: "Passato prossimo", usage: "Se usa para expresar que se aceptó algo.", example: "Ho accettato la proposta. (Acepté la propuesta.)" },
+      { id: 84,  verb: "ho rifiutato",        spanish: "Rechacé",           tense: "Passato prossimo", usage: "Se usa para expresar que se rechazó algo.", example: "Ho rifiutato l'invito. (Rechacé la invitación.)" },
+      { id: 85,  verb: "ho scelto",           spanish: "Elegí",             tense: "Passato prossimo", usage: "Se usa para expresar que se eligió algo.", example: "Ho scelto il vestito. (Elegí el vestido.)" },
+      { id: 86,  verb: "ho deciso",           spanish: "Decidí",            tense: "Passato prossimo", usage: "Se usa para expresar que se tomó una decisión.", example: "Ho deciso di partire. (Decidí partir.)" },
+      { id: 87,  verb: "ho cominciato",       spanish: "Comencé",           tense: "Passato prossimo", usage: "Se usa para expresar el inicio de una acción pasada.", example: "Ho cominciato a lavorare. (Comencé a trabajar.)" },
+      { id: 88,  verb: "ho continuato",       spanish: "Continué",          tense: "Passato prossimo", usage: "Se usa para expresar que una acción continuó.", example: "Ho continuato a studiare. (Continué estudiando.)" },
+      { id: 89,  verb: "ho smesso",           spanish: "Dejé de / Paré",    tense: "Passato prossimo", usage: "Se usa para expresar que se dejó de hacer algo.", example: "Ho smesso di fumare. (Dejé de fumar.)" },
+      { id: 90,  verb: "ho aiutato",          spanish: "Ayudé",             tense: "Passato prossimo", usage: "Se usa para expresar que se prestó ayuda.", example: "Ho aiutato mia sorella. (Ayudé a mi hermana.)" },
+      { id: 91,  verb: "ho visitato",         spanish: "Visité",            tense: "Passato prossimo", usage: "Se usa para expresar que se visitó un lugar o persona.", example: "Ho visitato il museo. (Visité el museo.)" },
+      { id: 92,  verb: "ho partecipato",      spanish: "Participé",         tense: "Passato prossimo", usage: "Se usa para expresar que se participó en algo.", example: "Ho partecipato alla riunione. (Participé en la reunión.)" },
+      { id: 93,  verb: "ho raggiunto",        spanish: "Alcancé",           tense: "Passato prossimo", usage: "Se usa para expresar que se alcanzó algo.", example: "Ho raggiunto il traguardo. (Alcancé la meta.)" },
+      { id: 94,  verb: "ho superato",         spanish: "Superé",            tense: "Passato prossimo", usage: "Se usa para expresar que se superó un obstáculo.", example: "Ho superato l'esame. (Superé el examen.)" },
+      { id: 95,  verb: "ho promesso",         spanish: "Prometí",           tense: "Passato prossimo", usage: "Se usa para expresar que se hizo una promesa.", example: "Ho promesso di tornare. (Prometí volver.)" },
+      { id: 96,  verb: "ho sognato",          spanish: "Soñé",              tense: "Passato prossimo", usage: "Se usa para expresar que se soñó con algo.", example: "Ho sognato un viaggio. (Soñé con un viaje.)" },
+      { id: 97,  verb: "ho perdonato",        spanish: "Perdoné",           tense: "Passato prossimo", usage: "Se usa para expresar que se perdonó a alguien.", example: "Ho perdonato il mio amico. (Perdoné a mi amigo.)" },
+      { id: 98,  verb: "ho ringraziato",      spanish: "Agradecí",          tense: "Passato prossimo", usage: "Se usa para expresar que se agradeció algo.", example: "Ho ringraziato tutti. (Agradecí a todos.)" },
+      { id: 99,  verb: "ho salutato",         spanish: "Saludé",            tense: "Passato prossimo", usage: "Se usa para expresar que se saludó a alguien.", example: "Ho salutato i miei amici. (Saludé a mis amigos.)" },
+      { id: 100, verb: "ho viaggiato",        spanish: "Viajé",             tense: "Passato prossimo", usage: "Se usa para expresar que se realizó un viaje.", example: "Ho viaggiato in Europa. (Viajé por Europa.)" }
+    ];
+
+    // MODO FUTURO: se muestra la forma conjugada en FUTURO SEMPLICE y se pregunta su significado en español
+    const verbDataFuturo = [
+      { id: 1,  verb: "parlerò",       spanish: "Hablaré",         tense: "Futuro semplice", usage: "Se usa para expresar una acción futura cierta.", example: "Domani parlerò con il direttore. (Mañana hablaré con el director.)" },
+      { id: 2,  verb: "mangerò",       spanish: "Comeré",          tense: "Futuro semplice", usage: "Se usa para indicar una acción que ocurrirá en el futuro.", example: "Mangerò la pizza. (Comeré la pizza.)" },
+      { id: 3,  verb: "andrò",         spanish: "Iré",             tense: "Futuro semplice", usage: "Se usa para expresar un desplazamiento futuro.", example: "Andrò al cinema. (Iré al cine.)" },
+      { id: 4,  verb: "leggerò",       spanish: "Leeré",           tense: "Futuro semplice", usage: "Se usa para expresar una acción de lectura futura.", example: "Leggerò il libro. (Leeré el libro.)" },
+      { id: 5,  verb: "scriverò",      spanish: "Escribiré",       tense: "Futuro semplice", usage: "Se usa para expresar una acción de escritura futura.", example: "Scriverò l'email. (Escribiré el correo.)" },
+      { id: 6,  verb: "finirò",        spanish: "Terminaré",       tense: "Futuro semplice", usage: "Se usa para indicar que se completará una acción.", example: "Finirò il progetto. (Terminaré el proyecto.)" },
+      { id: 7,  verb: "dormirò",       spanish: "Dormiré",         tense: "Futuro semplice", usage: "Se usa para expresar una acción futura de dormir.", example: "Stasera dormirò bene. (Esta noche dormiré bien.)" },
+      { id: 8,  verb: "berrò",         spanish: "Beberé",          tense: "Futuro semplice", usage: "Se usa para expresar una acción futura de beber.", example: "Berrò un caffè. (Beberé un café.)" },
+      { id: 9,  verb: "verrò",         spanish: "Vendré",          tense: "Futuro semplice", usage: "Se usa para indicar que alguien vendrá.", example: "Verrò alla festa. (Vendré a la fiesta.)" },
+      { id: 10, verb: "darò",          spanish: "Daré",            tense: "Futuro semplice", usage: "Se usa para expresar una acción futura de dar.", example: "Ti darò il libro. (Te daré el libro.)" },
+      { id: 11, verb: "farò",          spanish: "Haré",            tense: "Futuro semplice", usage: "Se usa para expresar una acción futura.", example: "Farò il lavoro. (Haré el trabajo.)" },
+      { id: 12, verb: "starò",         spanish: "Estaré",          tense: "Futuro semplice", usage: "Se usa para expresar una acción futura de estar.", example: "Starò a casa. (Estaré en casa.)" },
+      { id: 13, verb: "avrò",          spanish: "Tendré",          tense: "Futuro semplice", usage: "Se usa para expresar una acción futura de tener.", example: "Avrò tempo libero. (Tendré tiempo libre.)" },
+      { id: 14, verb: "sarò",          spanish: "Seré / Estaré",   tense: "Futuro semplice", usage: "Se usa para expresar un estado futuro.", example: "Sarò felice. (Seré feliz.)" },
+      { id: 15, verb: "canterò",       spanish: "Cantaré",         tense: "Futuro semplice", usage: "Se usa para expresar una acción futura de cantar.", example: "Canterò una canzone. (Cantaré una canción.)" },
+      { id: 16, verb: "ballerò",       spanish: "Bailaré",         tense: "Futuro semplice", usage: "Se usa para expresar una acción futura de bailar.", example: "Ballerò tutta la notte. (Bailaré toda la noche.)" },
+      { id: 17, verb: "giocherò",      spanish: "Jugaré",          tense: "Futuro semplice", usage: "Se usa para expresar una acción futura de juego.", example: "Giocherò a calcio. (Jugaré al fútbol.)" },
+      { id: 18, verb: "lavorerò",      spanish: "Trabajaré",       tense: "Futuro semplice", usage: "Se usa para expresar una acción futura de trabajo.", example: "Lavorerò tutto il giorno. (Trabajaré todo el día.)" },
+      { id: 19, verb: "correrò",       spanish: "Correré",         tense: "Futuro semplice", usage: "Se usa para expresar una acción futura de correr.", example: "Correrò al parco. (Correré al parque.)" },
+      { id: 20, verb: "camminerò",     spanish: "Caminaré",        tense: "Futuro semplice", usage: "Se usa para expresar una acción futura de caminar.", example: "Camminerò per la città. (Caminaré por la ciudad.)" },
+      { id: 21, verb: "guiderò",       spanish: "Conduciré",       tense: "Futuro semplice", usage: "Se usa para expresar una acción futura de conducir.", example: "Guiderò la macchina. (Conduciré el coche.)" },
+      { id: 22, verb: "volerò",        spanish: "Volaré",          tense: "Futuro semplice", usage: "Se usa para expresar una acción futura de volar.", example: "Volerò a Roma. (Volaré a Roma.)" },
+      { id: 23, verb: "nuoterò",       spanish: "Nadaré",          tense: "Futuro semplice", usage: "Se usa para expresar una acción futura de nado.", example: "Nuoterò al mare. (Nadaré en el mar.)" },
+      { id: 24, verb: "suonerò",       spanish: "Tocaré (música)", tense: "Futuro semplice", usage: "Se usa para expresar una acción futura de tocar un instrumento.", example: "Suonerò il pianoforte. (Tocaré el piano.)" },
+      { id: 25, verb: "disegnerò",     spanish: "Dibujaré",        tense: "Futuro semplice", usage: "Se usa para expresar una acción futura de dibujo.", example: "Disegnerò un quadro. (Dibujaré un cuadro.)" },
+      { id: 26, verb: "dipingerò",     spanish: "Pintaré",         tense: "Futuro semplice", usage: "Se usa para expresar una acción futura de pintura.", example: "Dipingerò la casa. (Pintaré la casa.)" },
+      { id: 27, verb: "comprerò",      spanish: "Compraré",        tense: "Futuro semplice", usage: "Se usa para expresar una acción futura de compra.", example: "Comprerò un libro. (Compraré un libro.)" },
+      { id: 28, verb: "venderò",       spanish: "Venderé",         tense: "Futuro semplice", usage: "Se usa para expresar una acción futura de venta.", example: "Venderò la macchina. (Venderé el coche.)" },
+      { id: 29, verb: "aprirò",        spanish: "Abriré",          tense: "Futuro semplice", usage: "Se usa para expresar una acción futura de apertura.", example: "Aprirò la porta. (Abriré la puerta.)" },
+      { id: 30, verb: "chiuderò",      spanish: "Cerraré",         tense: "Futuro semplice", usage: "Se usa para expresar una acción futura de cierre.", example: "Chiuderò la finestra. (Cerraré la ventana.)" },
+      { id: 31, verb: "perderò",       spanish: "Perderé",         tense: "Futuro semplice", usage: "Se usa para expresar una pérdida futura.", example: "Non perderò l'occasione. (No perderé la oportunidad.)" },
+      { id: 32, verb: "troverò",       spanish: "Encontraré",      tense: "Futuro semplice", usage: "Se usa para expresar un hallazgo futuro.", example: "Troverò la soluzione. (Encontraré la solución.)" },
+      { id: 33, verb: "cercherò",      spanish: "Buscaré",         tense: "Futuro semplice", usage: "Se usa para expresar una búsqueda futura.", example: "Cercherò il libro. (Buscaré el libro.)" },
+      { id: 34, verb: "mi ricorderò",  spanish: "Recordaré",       tense: "Futuro semplice", usage: "Se usa para expresar que se recordará algo.", example: "Mi ricorderò di te. (Me acordaré de ti.)" },
+      { id: 35, verb: "dimenticherò",  spanish: "Olvidaré",        tense: "Futuro semplice", usage: "Se usa para expresar que se olvidará algo.", example: "Non dimenticherò questo giorno. (No olvidaré este día.)" },
+      { id: 36, verb: "capirò",        spanish: "Entenderé",       tense: "Futuro semplice", usage: "Se usa para expresar que se entenderá algo.", example: "Capirò tutto. (Entenderé todo.)" },
+      { id: 37, verb: "spiegherò",     spanish: "Explicaré",       tense: "Futuro semplice", usage: "Se usa para expresar que se explicará algo.", example: "Ti spiegherò come funziona. (Te explicaré cómo funciona.)" },
+      { id: 38, verb: "insegnerò",     spanish: "Enseñaré",        tense: "Futuro semplice", usage: "Se usa para expresar que se enseñará algo.", example: "Insegnerò l'italiano. (Enseñaré italiano.)" },
+      { id: 39, verb: "imparerò",      spanish: "Aprenderé",       tense: "Futuro semplice", usage: "Se usa para expresar que se aprenderá algo.", example: "Imparerò il francese. (Aprenderé francés.)" },
+      { id: 40, verb: "penserò",       spanish: "Pensaré",         tense: "Futuro semplice", usage: "Se usa para expresar que se pensará en algo.", example: "Penserò a te. (Pensaré en ti.)" },
+      { id: 41, verb: "crederò",       spanish: "Creeré",          tense: "Futuro semplice", usage: "Se usa para expresar que se creerá algo.", example: "Crederò a quello che dici. (Creeré lo que dices.)" },
+      { id: 42, verb: "desidererò",    spanish: "Desearé",         tense: "Futuro semplice", usage: "Se usa para expresar un deseo futuro.", example: "Desidererò vederti presto. (Desearé verte pronto.)" },
+      { id: 43, verb: "amerò",         spanish: "Amaré",           tense: "Futuro semplice", usage: "Se usa para expresar amor futuro.", example: "Ti amerò per sempre. (Te amaré para siempre.)" },
+      { id: 44, verb: "odierò",        spanish: "Odiaré",          tense: "Futuro semplice", usage: "Se usa para expresar odio futuro.", example: "Non odierò nessuno. (No odiaré a nadie.)" },
+      { id: 45, verb: "riderò",        spanish: "Reiré",           tense: "Futuro semplice", usage: "Se usa para expresar que se reirá.", example: "Riderò insieme a te. (Reiré contigo.)" },
+      { id: 46, verb: "piangerò",      spanish: "Lloraré",         tense: "Futuro semplice", usage: "Se usa para expresar que se llorará.", example: "Non piangerò più. (No lloraré más.)" },
+      { id: 47, verb: "sorriderò",     spanish: "Sonreiré",        tense: "Futuro semplice", usage: "Se usa para expresar que se sonreirá.", example: "Sorriderò sempre. (Siempre sonreiré.)" },
+      { id: 48, verb: "toccherò",      spanish: "Tocaré",          tense: "Futuro semplice", usage: "Se usa para expresar que se tocará algo.", example: "Toccherò il muro. (Tocaré la pared.)" },
+      { id: 49, verb: "salterò",       spanish: "Saltaré",         tense: "Futuro semplice", usage: "Se usa para expresar que se saltará.", example: "Salterò la corda. (Saltaré la cuerda.)" },
+      { id: 50, verb: "urlerò",        spanish: "Gritaré",         tense: "Futuro semplice", usage: "Se usa para expresar que se gritará.", example: "Non urlerò più. (No gritaré más.)" },
+      { id: 51, verb: "conoscerò",     spanish: "Conoceré",        tense: "Futuro semplice", usage: "Se usa para expresar que se conocerá a alguien.", example: "Conoscerò nuove persone. (Conoceré a nuevas personas.)" },
+      { id: 52, verb: "saprò",         spanish: "Sabré",           tense: "Futuro semplice", usage: "Se usa para expresar que se sabrá algo.", example: "Saprò la risposta. (Sabré la respuesta.)" },
+      { id: 53, verb: "potrò",         spanish: "Podré",           tense: "Futuro semplice", usage: "Se usa para expresar que se podrá hacer algo.", example: "Potrò venire domani. (Podré venir mañana.)" },
+      { id: 54, verb: "vorrò",         spanish: "Querré",          tense: "Futuro semplice", usage: "Se usa para expresar que se querrá algo.", example: "Vorrò del caffè. (Querré café.)" },
+      { id: 55, verb: "dovrò",         spanish: "Deberé",          tense: "Futuro semplice", usage: "Se usa para expresar una obligación futura.", example: "Dovrò studiare. (Deberé estudiar.)" },
+      { id: 56, verb: "sentirò",       spanish: "Sentiré / Escucharé", tense: "Futuro semplice", usage: "Se usa para expresar que se percibirá algo.", example: "Sentirò la musica. (Escucharé la música.)" },
+      { id: 57, verb: "vedrò",         spanish: "Veré",            tense: "Futuro semplice", usage: "Se usa para expresar que se verá algo.", example: "Vedrò il film. (Veré la película.)" },
+      { id: 58, verb: "aspetterò",     spanish: "Esperaré",        tense: "Futuro semplice", usage: "Se usa para expresar que se esperará algo.", example: "Aspetterò il treno. (Esperaré el tren.)" },
+      { id: 59, verb: "partirò",       spanish: "Partiré / Saldré",tense: "Futuro semplice", usage: "Se usa para indicar que se partirá hacia un lugar.", example: "Partirò domani. (Saldré mañana.)" },
+      { id: 60, verb: "arriverò",      spanish: "Llegaré",         tense: "Futuro semplice", usage: "Se usa para expresar que se llegará a un lugar.", example: "Arriverò alle otto. (Llegaré a las ocho.)" },
+      { id: 61, verb: "entrerò",       spanish: "Entraré",         tense: "Futuro semplice", usage: "Se usa para expresar que se entrará en un lugar.", example: "Entrerò in casa. (Entraré en casa.)" },
+      { id: 62, verb: "uscirò",        spanish: "Saldré",          tense: "Futuro semplice", usage: "Se usa para expresar que se saldrá de un lugar.", example: "Uscirò alle sei. (Saldré a las seis.)" },
+      { id: 63, verb: "tornerò",       spanish: "Volveré",         tense: "Futuro semplice", usage: "Se usa para expresar que se regresará a un lugar.", example: "Tornerò a casa. (Volveré a casa.)" },
+      { id: 64, verb: "rimarrò",       spanish: "Me quedaré",      tense: "Futuro semplice", usage: "Se usa para expresar que uno permanecerá en un lugar.", example: "Rimarrò qui. (Me quedaré aquí.)" },
+      { id: 65, verb: "porterò",       spanish: "Llevaré / Traeré",tense: "Futuro semplice", usage: "Se usa para expresar que se llevará algo.", example: "Porterò i bagagli. (Llevaré el equipaje.)" },
+      { id: 66, verb: "prenderò",      spanish: "Tomaré / Cogeré", tense: "Futuro semplice", usage: "Se usa para expresar la acción futura de tomar algo.", example: "Prenderò il caffè. (Tomaré el café.)" },
+      { id: 67, verb: "metterò",       spanish: "Pondré",          tense: "Futuro semplice", usage: "Se usa para expresar que se colocará algo en un sitio.", example: "Metterò il libro sul tavolo. (Pondré el libro en la mesa.)" },
+      { id: 68, verb: "cambierò",      spanish: "Cambiaré",        tense: "Futuro semplice", usage: "Se usa para expresar una acción futura de cambio.", example: "Cambierò idea. (Cambiaré de idea.)" },
+      { id: 69, verb: "userò",         spanish: "Usaré",           tense: "Futuro semplice", usage: "Se usa para expresar que se utilizará algo.", example: "Userò il computer. (Usaré el ordenador.)" },
+      { id: 70, verb: "chiederò",      spanish: "Pediré / Preguntaré", tense: "Futuro semplice", usage: "Se usa para expresar que se pedirá o preguntará algo.", example: "Chiederò informazioni. (Pediré información.)" },
+      { id: 71, verb: "risponderò",    spanish: "Responderé",      tense: "Futuro semplice", usage: "Se usa para expresar que se responderá a algo.", example: "Risponderò al messaggio. (Responderé al mensaje.)" },
+      { id: 72, verb: "pagherò",       spanish: "Pagaré",          tense: "Futuro semplice", usage: "Se usa para expresar una acción futura de pago.", example: "Pagherò il conto. (Pagaré la cuenta.)" },
+      { id: 73, verb: "riceverò",      spanish: "Recibiré",        tense: "Futuro semplice", usage: "Se usa para expresar que se recibirá algo.", example: "Riceverò una lettera. (Recibiré una carta.)" },
+      { id: 74, verb: "manderò",       spanish: "Enviaré",         tense: "Futuro semplice", usage: "Se usa para expresar que se enviará algo.", example: "Manderò un messaggio. (Enviaré un mensaje.)" },
+      { id: 75, verb: "chiamerò",      spanish: "Llamaré",         tense: "Futuro semplice", usage: "Se usa para expresar que se llamará a alguien.", example: "Chiamerò mia madre. (Llamaré a mi madre.)" },
+      { id: 76, verb: "ascolterò",     spanish: "Escucharé",       tense: "Futuro semplice", usage: "Se usa para expresar que se prestará atención a algo.", example: "Ascolterò la radio. (Escucharé la radio.)" },
+      { id: 77, verb: "guarderò",      spanish: "Miraré",          tense: "Futuro semplice", usage: "Se usa para expresar que se observará algo.", example: "Guarderò la televisione. (Miraré la televisión.)" },
+      { id: 78, verb: "costruirò",     spanish: "Construiré",      tense: "Futuro semplice", usage: "Se usa para expresar que se construirá algo.", example: "Costruirò una casa. (Construiré una casa.)" },
+      { id: 79, verb: "pulirò",        spanish: "Limpiaré",        tense: "Futuro semplice", usage: "Se usa para expresar que se limpiará algo.", example: "Pulirò la cucina. (Limpiaré la cocina.)" },
+      { id: 80, verb: "cucinerò",      spanish: "Cocinaré",        tense: "Futuro semplice", usage: "Se usa para expresar que se cocinará algo.", example: "Cucinerò la pasta. (Cocinaré la pasta.)" },
+      { id: 81, verb: "otterrò",       spanish: "Obtendré",        tense: "Futuro semplice", usage: "Se usa para expresar que se obtendrá algo.", example: "Otterrò buoni risultati. (Obtendré buenos resultados.)" },
+      { id: 82, verb: "offrirò",       spanish: "Ofreceré",        tense: "Futuro semplice", usage: "Se usa para expresar que se ofrecerá algo.", example: "Offrirò il caffè. (Ofreceré el café.)" },
+      { id: 83, verb: "accetterò",     spanish: "Aceptaré",        tense: "Futuro semplice", usage: "Se usa para expresar que se aceptará algo.", example: "Accetterò la proposta. (Aceptaré la propuesta.)" },
+      { id: 84, verb: "rifiuterò",     spanish: "Rechazaré",       tense: "Futuro semplice", usage: "Se usa para expresar que se rechazará algo.", example: "Rifiuterò l'invito. (Rechazaré la invitación.)" },
+      { id: 85, verb: "sceglierò",     spanish: "Elegiré",         tense: "Futuro semplice", usage: "Se usa para expresar que se elegirá algo.", example: "Sceglierò il vestito. (Elegiré el vestido.)" },
+      { id: 86, verb: "deciderò",      spanish: "Decidiré",        tense: "Futuro semplice", usage: "Se usa para expresar que se tomará una decisión.", example: "Deciderò di partire. (Decidiré partir.)" },
+      { id: 87, verb: "comincerò",     spanish: "Comenzaré",       tense: "Futuro semplice", usage: "Se usa para expresar el inicio futuro de una acción.", example: "Comincerò a lavorare. (Comenzaré a trabajar.)" },
+      { id: 88, verb: "continuerò",    spanish: "Continuaré",      tense: "Futuro semplice", usage: "Se usa para expresar que una acción continuará.", example: "Continuerò a studiare. (Continuaré estudiando.)" },
+      { id: 89, verb: "smetterò",      spanish: "Dejaré de / Pararé", tense: "Futuro semplice", usage: "Se usa para expresar que se dejará de hacer algo.", example: "Smetterò di fumare. (Dejaré de fumar.)" },
+      { id: 90, verb: "aiuterò",       spanish: "Ayudaré",         tense: "Futuro semplice", usage: "Se usa para expresar que se prestará ayuda.", example: "Aiuterò mia sorella. (Ayudaré a mi hermana.)" },
+      { id: 91, verb: "visiterò",      spanish: "Visitaré",        tense: "Futuro semplice", usage: "Se usa para expresar que se visitará un lugar o persona.", example: "Visiterò il museo. (Visitaré el museo.)" },
+      { id: 92, verb: "parteciperò",   spanish: "Participaré",     tense: "Futuro semplice", usage: "Se usa para expresar que se participará en algo.", example: "Parteciperò alla riunione. (Participaré en la reunión.)" },
+      { id: 93, verb: "raggiungerò",   spanish: "Alcanzaré",       tense: "Futuro semplice", usage: "Se usa para expresar que se alcanzará algo.", example: "Raggiungerò il traguardo. (Alcanzaré la meta.)" },
+      { id: 94, verb: "supererò",      spanish: "Superaré",        tense: "Futuro semplice", usage: "Se usa para expresar que se superará un obstáculo.", example: "Supererò l'esame. (Superaré el examen.)" },
+      { id: 95, verb: "perdonerò",     spanish: "Perdonaré",       tense: "Futuro semplice", usage: "Se usa para expresar que se perdonará a alguien.", example: "Perdonerò il mio amico. (Perdonaré a mi amigo.)" },
+      { id: 96, verb: "ringrazierò",   spanish: "Agradaceré",      tense: "Futuro semplice", usage: "Se usa para expresar que se agradecerá algo.", example: "Ringrazierò tutti. (Agradeceré a todos.)" },
+      { id: 97, verb: "saluterò",      spanish: "Saludaré",        tense: "Futuro semplice", usage: "Se usa para expresar que se saludará a alguien.", example: "Saluterò i miei amici. (Saludaré a mis amigos.)" },
+      { id: 98, verb: "incontrerò",    spanish: "Me encontraré con",tense: "Futuro semplice", usage: "Se usa para expresar que se encontrará con alguien.", example: "Incontrerò un vecchio amico. (Me encontraré con un viejo amigo.)" },
+      { id: 99, verb: "viaggerò",      spanish: "Viajaré",         tense: "Futuro semplice", usage: "Se usa para expresar que se realizará un viaje.", example: "Viaggerò in Europa. (Viajaré por Europa.)" },
+      { id: 100, verb: "immaginerò",   spanish: "Imaginaré",       tense: "Futuro semplice", usage: "Se usa para expresar que se imaginará algo.", example: "Immaginerò il futuro. (Imaginaré el futuro.)" }
+    ];
+
+    // ✅ BUG CORREGIDO: "basico" ahora apunta a verbDataBasico (antes apuntaba a verbDataPresente que no existía)
+    function getVerbDataByMode(mode) {
+      if (mode === "basico") return verbDataBasico;
+      if (mode === "pasado") return verbDataPasado;
+      if (mode === "futuro") return verbDataFuturo;
+      return verbDataBasico;
+    }
+
+    function getRandomOptions(correctIndex, mode) {
+      const verbData = getVerbDataByMode(mode);
+      const correctVerb = verbData[correctIndex];
+      const options = [correctVerb];
+      const remaining = verbData.filter((v, idx) => idx !== correctIndex);
+      for (let i = 0; i < 3; i++) {
+        const randomIndex = Math.floor(Math.random() * remaining.length);
+        options.push(remaining[randomIndex]);
+        remaining.splice(randomIndex, 1);
+      }
+      return options.sort(() => Math.random() - 0.5);
+    }
+
+    function startQuiz(mode) {
+      quizState.currentMode = mode;
+      quizState.currentQuestion = 0;
+      quizState.answered = [];
+      quizState.currentAnswering = false;
+      document.getElementById("mode-selector").style.display = "none";
+      document.getElementById("quiz-mode").style.display = "block";
+      updateProgress();
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      const verbData = getVerbDataByMode(quizState.currentMode);
+      const question = verbData[quizState.currentQuestion];
+      const options = getRandomOptions(quizState.currentQuestion, quizState.currentMode);
+      const quizArea = document.getElementById("quiz-area");
+      quizArea.innerHTML = `
+        <div class="question-card">
+          <div class="verb-display">
+            <div class="question-label">Verbo italiano</div>
+            <div class="verb-text">${question.verb}</div>
+          </div>
+          <div class="options-container" id="options-container">
+            ${options.map((opt) => `
+              <button class="option-btn" data-verb="${opt.verb}" onclick="selectAnswer('${opt.verb}', '${question.verb}')">
+                ${opt.spanish}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function selectAnswer(selectedVerb, correctVerb) {
+      if (quizState.currentAnswering) return;
+      quizState.currentAnswering = true;
+      const buttons = document.querySelectorAll(".option-btn");
+      buttons.forEach(btn => btn.disabled = true);
+      const selectedBtn = document.querySelector(`[data-verb="${selectedVerb}"]`);
+      const isCorrect = selectedVerb === correctVerb;
+      if (isCorrect) {
+        selectedBtn.classList.add("correct");
+      } else {
+        selectedBtn.classList.add("incorrect");
+        document.querySelector(`[data-verb="${correctVerb}"]`).classList.add("correct");
+      }
+      const verbData = getVerbDataByMode(quizState.currentMode);
+      const correctVerbObj = verbData.find(v => v.verb === correctVerb);
+      quizState.answered.push({ verb: correctVerb, correct: isCorrect });
+      updateProgress();
+      setTimeout(() => {
+        showModal(correctVerbObj);
+      }, 1000);
+    }
+
+    function updateProgress() {
+      const verbData = getVerbDataByMode(quizState.currentMode);
+      const total = verbData ? verbData.length : 1;
+      const progress = (quizState.answered.length / total) * 100;
+      document.getElementById("progress-fill").style.width = progress + "%";
+    }
+
+    function moveToNextQuestion() {
+      quizState.currentQuestion++;
+      quizState.currentAnswering = false;
+      const verbData = getVerbDataByMode(quizState.currentMode);
+      if (quizState.currentQuestion < verbData.length) {
+        renderQuestion();
+      } else {
+        showCompletion();
+      }
+    }
+
+    function closeModal() {
+      document.getElementById("modal-overlay").classList.remove("active");
+      moveToNextQuestion();
+    }
+
+    function showModal(item) {
+      document.getElementById("modal-title").textContent = item.verb.toUpperCase();
+      document.getElementById("modal-usage").textContent = item.usage;
+      document.getElementById("modal-example").textContent = item.example;
+      document.getElementById("modal-overlay").classList.add("active");
+    }
+
+    function showCompletion() {
+      const correctAnswers = quizState.answered.filter(a => a.correct).length;
+      const incorrectAnswers = quizState.answered.filter(a => !a.correct).length;
+      const percentage = Math.round((correctAnswers / quizState.answered.length) * 100);
+      const quizArea = document.getElementById("quiz-area");
+      quizArea.innerHTML = `
+        <div class="completion-screen">
+          <h2>✓ Completato!</h2>
+          <p>${config.completion_message || defaultConfig.completion_message}</p>
+          <div style="background: #f9f9f9; padding: 1.5rem; border-radius: 8px; margin: 1.5rem 0; text-align: center;">
+            <div style="margin-bottom: 1rem;">
+              <div style="font-size: 0.9rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">Respuestas correctas</div>
+              <div style="font-size: 2rem; font-weight: 700; color: #2ecc71;">${correctAnswers}/${quizState.answered.length}</div>
+            </div>
+            <div style="margin-bottom: 1rem;">
+              <div style="font-size: 0.9rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">Respuestas incorrectas</div>
+              <div style="font-size: 1.5rem; font-weight: 700; color: #e74c3c;">${incorrectAnswers}</div>
+            </div>
+            <div>
+              <div style="font-size: 0.9rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">Porcentaje de aciertos</div>
+              <div style="font-size: 2rem; font-weight: 700; color: #3498db;">${percentage}%</div>
+            </div>
+          </div>
+          <button class="restart-btn" onclick="restartQuiz()">Ricomincia</button>
+        </div>
+      `;
+    }
+
+    function restartQuiz() {
+      quizState = {
+        currentQuestion: 0,
+        answered: [],
+        currentAnswering: false,
+        currentMode: null
+      };
+      updateProgress();
+      document.getElementById("mode-selector").style.display = "flex";
+      document.getElementById("quiz-mode").style.display = "none";
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("game-title").textContent = config.game_title;
+      document.getElementById("instructions").textContent = config.instructions_text;
+    });
+
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js").catch((error) => {
+          console.error("Service Worker registration failed:", error);
+        });
+      });
+    }
+  </script>
+ </body>
+</html>
