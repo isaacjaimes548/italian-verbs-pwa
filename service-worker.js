@@ -1,4 +1,4 @@
-const CACHE_NAME = "italian-verbs-quiz-v2";
+const CACHE_NAME = "italian-verbs-quiz-v3";
 const APP_SHELL = [
   "./",
   "./index.html",
