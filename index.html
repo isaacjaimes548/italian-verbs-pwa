@@ -1,397 +1,357 @@
 
 <!doctype html>
-<html lang="es" class="h-full">
- <head>
+<html lang="es">
+<head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Italian Verbs Quiz</title>
-  <meta name="theme-color" content="#2c3e50">
-  <meta name="description" content="Quiz PWA para practicar verbos italianos en presente, pasado y futuro.">
+  <meta name="theme-color" content="#6f55d9">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Italian Verbs Quiz">
+  <meta name="apple-mobile-web-app-title" content="Italian Quiz">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
-  <link rel="apple-touch-icon" href="./icon-192.png">
-    <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+  <style>
+    :root {
+      --bg-start: #5f79e3;
+      --bg-mid: #7256ce;
+      --bg-end: #60459d;
+      --panel: #f4f5f7;
+      --text: #17324d;
+      --muted: #7d8ca1;
+      --white: #ffffff;
+      --green: #2ed573;
+      --red: #ff5f57;
+      --yellow: #ffd84a;
+      --border: #d6dbe4;
+      --shadow: 0 16px 40px rgba(37, 24, 77, 0.18);
+      --radius-lg: 28px;
+      --radius-md: 18px;
+      --radius-sm: 12px;
     }
+
+    * { box-sizing: border-box; }
 
     html, body {
-      height: 100%;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100%;
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text);
+      background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-mid) 52%, var(--bg-end) 100%);
     }
 
-    .quiz-container {
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      min-height: 100%;
+    body { padding: 22px; }
+
+    button { font: inherit; }
+
+    .app-shell {
+      width: min(820px, 100%);
+      margin: 0 auto;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      background: var(--panel);
+      min-height: calc(100vh - 44px);
+    }
+
+    .hero {
+      padding: 34px 30px 24px;
+      text-align: center;
+      color: white;
+      background: linear-gradient(90deg, #6783eb 0%, #8450bb 100%);
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.1;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .hero p {
+      margin: 14px 0 0;
+      font-size: 1.1rem;
+      opacity: 0.96;
+    }
+
+    .hero-separator {
+      margin-top: 18px;
+      height: 7px;
+      width: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #34e47a 0%, #28d66f 100%);
+    }
+
+    .content { padding: 28px 24px 34px; }
+
+    .mode-grid {
       display: flex;
       flex-direction: column;
+      gap: 18px;
+      margin-top: 8px;
     }
 
-    .header {
-      background: linear-gradient(to right, #2c3e50, #34495e);
+    .mode-card {
+      border: none;
+      border-radius: 16px;
       color: white;
-      padding: 2rem 1.5rem;
       text-align: center;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 26px 20px;
+      cursor: pointer;
+      box-shadow: 0 10px 22px rgba(37, 24, 77, 0.14);
+      transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
     }
 
-    .header h1 {
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
+    .mode-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px rgba(37, 24, 77, 0.18);
+      filter: brightness(1.02);
     }
 
-    .header p {
-      font-size: 0.95rem;
-      opacity: 0.9;
+    .mode-card .title {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 8px;
     }
 
-    .quiz-wrapper {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 2rem 1.5rem;
-      overflow-y: auto;
+    .mode-card .subtitle {
+      font-size: 1rem;
+      font-weight: 600;
+      opacity: 0.95;
     }
 
-    .quiz-content {
-      max-width: 600px;
-      width: 100%;
+    .gradient-present { background: linear-gradient(90deg, #6880eb 0%, #7d53bb 100%); }
+    .gradient-past { background: linear-gradient(90deg, #df88e9 0%, #f55572 100%); }
+    .gradient-future { background: linear-gradient(90deg, #56a4ea 0%, #18d6df 100%); }
+    .gradient-random { background: linear-gradient(90deg, #f685af 0%, #f9d73b 100%); }
+
+    .quiz-topbar { display: none; }
+    .quiz-topbar.active { display: block; }
+
+    .stats-panel {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      background: rgba(255,255,255,0.14);
+      border-radius: 12px;
+      padding: 14px 10px;
+      color: white;
+      text-align: center;
+      margin-bottom: 14px;
     }
 
-    .progress-bar {
-      background: #ecf0f1;
+    .stat-label { font-size: 0.95rem; font-weight: 700; margin-bottom: 8px; }
+    .stat-value { font-size: clamp(1.65rem, 4vw, 2.2rem); font-weight: 800; line-height: 1; }
+    .stat-value.correct { color: var(--green); }
+    .stat-value.incorrect { color: var(--red); }
+    .stat-value.progress { color: var(--yellow); }
+
+    .progress-track {
       height: 8px;
-      border-radius: 4px;
-      margin-bottom: 2rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.22);
       overflow: hidden;
     }
 
     .progress-fill {
-      background: linear-gradient(to right, #3498db, #2ecc71);
+      width: 0%;
       height: 100%;
-      transition: width 0.3s ease;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #34e47a 0%, #44f2da 100%);
+      transition: width .25s ease;
     }
+
+    .quiz-panel { display: none; }
+    .quiz-panel.active { display: block; }
 
     .question-card {
-      background: white;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      margin-bottom: 2rem;
-    }
-
-    .verb-display {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 30px 24px;
       text-align: center;
-      margin-bottom: 1.5rem;
-    }
-
-    .verb-text {
-      font-size: 2.5rem;
-      font-weight: 700;
-      color: #3498db;
-      margin-bottom: 0.5rem;
+      margin-bottom: 26px;
     }
 
     .question-label {
-      font-size: 0.9rem;
-      color: #7f8c8d;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .options-container {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .option-btn {
-      padding: 1rem;
-      border: 2px solid #bdc3c7;
-      border-radius: 8px;
-      background: white;
-      color: #2c3e50;
-      cursor: pointer;
       font-size: 1rem;
-      font-weight: 500;
-      transition: all 0.2s ease;
-      text-align: left;
-    }
-
-    .option-btn:hover:not(:disabled) {
-      border-color: #3498db;
-      background: #ecf0f1;
-      transform: translateX(4px);
-    }
-
-    .option-btn:disabled {
-      cursor: not-allowed;
-    }
-
-    .option-btn.correct {
-      background: #2ecc71;
-      color: white;
-      border-color: #27ae60;
-    }
-
-    .option-btn.incorrect {
-      background: #e74c3c;
-      color: white;
-      border-color: #c0392b;
-    }
-
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.6);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-
-    .modal-overlay.active {
-      display: flex;
-    }
-
-    .modal {
-      background: white;
-      padding: 2rem;
-      border-radius: 12px;
-      max-width: 500px;
-      width: 90%;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-      animation: slideIn 0.3s ease;
-    }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .modal-header {
-      border-bottom: 3px solid #3498db;
-      padding-bottom: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .modal-header h3 {
-      font-size: 1.5rem;
-      color: #2c3e50;
-      font-weight: 700;
-    }
-
-    .modal-body {
-      margin-bottom: 1.5rem;
-    }
-
-    .modal-label {
-      font-weight: 600;
-      color: #2c3e50;
-      margin-top: 1rem;
-      margin-bottom: 0.5rem;
-      font-size: 0.9rem;
+      color: #70839a;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: #7f8c8d;
-      letter-spacing: 0.5px;
+      margin-bottom: 14px;
     }
 
-    .modal-content {
-      background: #f9f9f9;
-      padding: 1rem;
-      border-left: 4px solid #3498db;
-      border-radius: 4px;
-      color: #34495e;
-      line-height: 1.6;
+    .verb-text {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 3.3rem);
+      font-weight: 800;
+      font-style: italic;
+      letter-spacing: -0.03em;
     }
 
-    .close-modal {
-      background: linear-gradient(to right, #3498db, #2980b9);
-      color: white;
-      border: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.2s ease;
+    .options { display: flex; flex-direction: column; gap: 14px; }
+
+    .option-btn, .back-btn, .primary-btn {
       width: 100%;
-      font-size: 1rem;
+      border-radius: 10px;
+      border: 1.5px solid #cfd6e0;
+      background: transparent;
+      color: var(--text);
+      padding: 15px 16px;
+      text-align: left;
+      font-size: 1.15rem;
+      transition: all .18s ease;
     }
 
-    .close-modal:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 12px rgba(52, 152, 219, 0.3);
+    .option-btn:hover:not(:disabled), .back-btn:hover, .primary-btn:hover {
+      border-color: #7a78f2;
+      box-shadow: 0 6px 16px rgba(91, 76, 201, 0.08);
+      transform: translateY(-1px);
     }
 
-    .completion-screen {
-      text-align: center;
-      padding: 2rem;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .completion-screen h2 {
-      font-size: 2rem;
-      color: #2ecc71;
-      margin-bottom: 1rem;
-      font-weight: 700;
-    }
-
-    .completion-screen p {
-      font-size: 1.1rem;
-      color: #34495e;
-      margin-bottom: 2rem;
-    }
-
-    .restart-btn {
-      background: linear-gradient(to right, #3498db, #2980b9);
-      color: white;
-      border: none;
-      padding: 0.75rem 2rem;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .restart-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 12px rgba(52, 152, 219, 0.3);
-    }
-
-    .restart-btn:active {
-      transform: translateY(0);
-    }
-
-    .mode-card {
-      background: white;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      cursor: pointer;
-      transition: all 0.3s ease;
-      border: 3px solid transparent;
-    }
-
-    .mode-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-      border-color: #3498db;
-    }
-
-    .mode-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #2c3e50;
-      margin-bottom: 0.5rem;
-    }
-
-    .mode-description {
-      font-size: 1rem;
-      color: #7f8c8d;
-    }
+    .option-btn:disabled { cursor: default; }
+    .option-btn.correct { background: rgba(46, 213, 115, 0.14); border-color: #2ed573; color: #197441; font-weight: 700; }
+    .option-btn.incorrect { background: rgba(255, 95, 87, 0.12); border-color: #ff5f57; color: #b5302a; font-weight: 700; }
 
     .back-btn {
-      background: #95a5a6;
-      color: white;
-      border: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 8px;
-      cursor: pointer;
+      margin-top: 22px;
+      text-align: center;
+      color: #6a6ef0;
       font-weight: 600;
-      transition: all 0.2s ease;
-      font-size: 0.9rem;
-      margin-bottom: 1rem;
     }
 
-    .back-btn:hover {
-      background: #7f8c8d;
-      transform: translateY(-2px);
+    .completion-card {
+      margin-top: 18px;
+      background: white;
+      border-radius: 18px;
+      border: 1px solid #e2e6ee;
+      padding: 28px 22px;
+      text-align: center;
+      box-shadow: 0 14px 30px rgba(37, 24, 77, 0.08);
     }
 
-    @media (max-width: 768px) {
-      .header h1 {
-        font-size: 1.5rem;
-      }
+    .completion-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 170px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      color: white;
+      font-weight: 800;
+      font-size: 1.2rem;
+      margin-bottom: 16px;
+    }
 
-      .verb-text {
-        font-size: 2rem;
-      }
+    .completion-badge.completed { background: linear-gradient(90deg, #6f7fea, #7955c4); }
+    .completion-badge.perfect { background: linear-gradient(90deg, #2fd673, #16c9d3); }
 
-      .modal {
-        width: 95%;
-      }
+    .completion-card h2 { margin: 0 0 10px; font-size: 2rem; color: var(--text); }
+    .completion-card p { margin: 0; color: #607287; font-size: 1.02rem; line-height: 1.6; }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 22px 0;
+    }
+
+    .summary-item {
+      background: #f7f8fb;
+      border: 1px solid #e4e8ef;
+      border-radius: 14px;
+      padding: 14px 10px;
+    }
+
+    .summary-item .k { font-size: .85rem; text-transform: uppercase; letter-spacing: .08em; color: #7b8ba0; margin-bottom: 8px; }
+    .summary-item .v { font-size: 1.8rem; font-weight: 800; }
+    .summary-item.correct .v { color: #19ad5d; }
+    .summary-item.incorrect .v { color: #f04d47; }
+    .summary-item.score .v { color: #6d69ec; }
+
+    .primary-btn {
+      text-align: center;
+      font-weight: 700;
+      color: white;
+      background: linear-gradient(90deg, #6f7fea 0%, #7c56c4 100%);
+      border: none;
+      box-shadow: 0 10px 20px rgba(97, 87, 208, 0.18);
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 640px) {
+      body { padding: 0; }
+      .app-shell { min-height: 100vh; border-radius: 0; width: 100%; }
+      .hero { padding: 28px 18px 20px; }
+      .content { padding: 20px 16px 24px; }
+      .stats-panel { padding: 12px 8px; }
+      .stat-label { font-size: .82rem; }
+      .option-btn, .back-btn, .primary-btn { font-size: 1rem; padding: 14px; }
+      .question-card { padding: 24px 16px; }
+      .summary-grid { grid-template-columns: 1fr; }
     }
   </style>
- </head>
- <body class="h-full">
-  <div class="quiz-container h-full">
-   <div class="header">
-    <h1 id="game-title">Italian Verbs Quiz</h1>
-    <p id="instructions">Selecciona la traducción correcta al español</p>
-   </div>
-   <div class="quiz-wrapper">
-    <div class="quiz-content">
-     <div id="mode-selector" style="display: flex; flex-direction: column; gap: 1.5rem;">
-      <div class="mode-card" onclick="startQuiz('basico')">
-       <div class="mode-title">Modo Básico</div>
-       <div class="mode-description">Practica verbos en presente</div>
+</head>
+<body>
+  <main class="app-shell">
+    <section class="hero">
+      <h1 id="game-title">Italian Verbs Quiz</h1>
+      <p id="instructions">Learn Italian verbs in present, past, and future tense!</p>
+      <div class="quiz-topbar" id="quiz-topbar">
+        <div class="stats-panel">
+          <div>
+            <div class="stat-label">✓ Correctas</div>
+            <div class="stat-value correct" id="correct-count">0</div>
+          </div>
+          <div>
+            <div class="stat-label">✗ Incorrectas</div>
+            <div class="stat-value incorrect" id="incorrect-count">0</div>
+          </div>
+          <div>
+            <div class="stat-label">Preguntas</div>
+            <div class="stat-value progress" id="question-count">0/100</div>
+          </div>
+        </div>
       </div>
-      <div class="mode-card" onclick="startQuiz('pasado')">
-       <div class="mode-title">Modo Pasado</div>
-       <div class="mode-description">Practica verbos en pasado</div>
+      <div class="hero-separator">
+        <div class="progress-fill" id="progress-fill"></div>
       </div>
-      <div class="mode-card" onclick="startQuiz('futuro')">
-       <div class="mode-title">Modo Futuro</div>
-       <div class="mode-description">Practica verbos en futuro</div>
+    </section>
+
+    <section class="content">
+      <div id="mode-selector" class="mode-grid">
+        <button class="mode-card gradient-present" onclick="startQuiz('basico')">
+          <div class="title">🟩 Present (Presente Indicativo)</div>
+          <div class="subtitle">100 verbs - Basic tense</div>
+        </button>
+        <button class="mode-card gradient-past" onclick="startQuiz('pasado')">
+          <div class="title">⏪ Past (Passato Prossimo)</div>
+          <div class="subtitle">100 verbs - Recent past</div>
+        </button>
+        <button class="mode-card gradient-future" onclick="startQuiz('futuro')">
+          <div class="title">⏩ Future (Futuro Semplice)</div>
+          <div class="subtitle">100 verbs - Future tense</div>
+        </button>
+        <button class="mode-card gradient-random" onclick="startQuiz('random')">
+          <div class="title">🎲 Random (Modo Aleatorio)</div>
+          <div class="subtitle">100 verbs - All tenses mixed</div>
+        </button>
       </div>
-     </div>
-     <div id="quiz-mode" style="display: none;">
-      <div class="progress-bar">
-       <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+
+      <div id="quiz-mode" class="quiz-panel">
+        <div id="quiz-area"></div>
+        <button class="back-btn" onclick="goHome()">← Volver a menú principal</button>
       </div>
-      <div id="quiz-area"></div>
-     </div>
-    </div>
-   </div>
-  </div>
-  <div class="modal-overlay" id="modal-overlay">
-   <div class="modal">
-    <div class="modal-header">
-     <h3 id="modal-title"></h3>
-    </div>
-    <div class="modal-body">
-     <div class="modal-label">Uso:</div>
-     <div class="modal-content" id="modal-usage"></div>
-     <div class="modal-label">Esempio:</div>
-     <div class="modal-content" id="modal-example"></div>
-    </div>
-    <button class="close-modal" onclick="closeModal()">Continua</button>
-   </div>
-  </div>
+    </section>
+  </main>
+
   <script>
     const defaultConfig = {
       game_title: "Italian Verbs Quiz",
-      instructions_text: "Selecciona la traducción correcta al español",
-      completion_message: "¡Complimenti! ¡Has completado el quiz!"
+      instructions_text: "Learn Italian verbs in present, past, and future tense!"
     };
 
     let config = { ...defaultConfig };
@@ -399,10 +359,10 @@
       currentQuestion: 0,
       answered: [],
       currentAnswering: false,
-      currentMode: null
+      currentMode: null,
+      activeData: []
     };
 
-    // MODO BÁSICO: se muestra la forma conjugada en PRESENTE y se pregunta su significado en español
     const verbDataBasico = [
       { id: 1,   verb: "parlo",        spanish: "Hablo",             tense: "Presente indicativo", usage: "Se usa para expresar una acción que ocurre en el presente.", example: "Parlo con il direttore. (Hablo con el director.)" },
       { id: 2,   verb: "mangio",       spanish: "Como",              tense: "Presente indicativo", usage: "Se usa para expresar una acción presente.", example: "Mangio la pizza. (Como la pizza.)" },
@@ -715,24 +675,33 @@
     ];
 
     // ✅ BUG CORREGIDO: "basico" ahora apunta a verbDataBasico (antes apuntaba a verbDataPresente que no existía)
-    function getVerbDataByMode(mode) {
-      if (mode === "basico") return verbDataBasico;
-      if (mode === "pasado") return verbDataPasado;
-      if (mode === "futuro") return verbDataFuturo;
-      return verbDataBasico;
+
+    function shuffleArray(items) {
+      const copy = [...items];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
     }
 
-    function getRandomOptions(correctIndex, mode) {
-      const verbData = getVerbDataByMode(mode);
-      const correctVerb = verbData[correctIndex];
-      const options = [correctVerb];
-      const remaining = verbData.filter((v, idx) => idx !== correctIndex);
-      for (let i = 0; i < 3; i++) {
-        const randomIndex = Math.floor(Math.random() * remaining.length);
-        options.push(remaining[randomIndex]);
-        remaining.splice(randomIndex, 1);
+    function getDatasetForMode(mode) {
+      if (mode === 'basico') return [...verbDataBasico];
+      if (mode === 'pasado') return [...verbDataPasado];
+      if (mode === 'futuro') return [...verbDataFuturo];
+      if (mode === 'random') {
+        const merged = [...verbDataBasico, ...verbDataPasado, ...verbDataFuturo];
+        return shuffleArray(merged).slice(0, 100);
       }
-      return options.sort(() => Math.random() - 0.5);
+      return [...verbDataBasico];
+    }
+
+    function getRandomOptions(question, pool) {
+      const options = [question];
+      const remaining = pool.filter(item => item.verb !== question.verb || item.spanish !== question.spanish);
+      const distractors = shuffleArray(remaining).slice(0, 3);
+      options.push(...distractors);
+      return shuffleArray(options);
     }
 
     function startQuiz(mode) {
@@ -740,139 +709,167 @@
       quizState.currentQuestion = 0;
       quizState.answered = [];
       quizState.currentAnswering = false;
-      document.getElementById("mode-selector").style.display = "none";
-      document.getElementById("quiz-mode").style.display = "block";
+      quizState.activeData = getDatasetForMode(mode);
+
+      document.getElementById('mode-selector').classList.add('hidden');
+      document.getElementById('quiz-mode').classList.add('active');
+      document.getElementById('quiz-topbar').classList.add('active');
+
       updateProgress();
       renderQuestion();
     }
 
     function renderQuestion() {
-      const verbData = getVerbDataByMode(quizState.currentMode);
-      const question = verbData[quizState.currentQuestion];
-      const options = getRandomOptions(quizState.currentQuestion, quizState.currentMode);
-      const quizArea = document.getElementById("quiz-area");
+      const question = quizState.activeData[quizState.currentQuestion];
+      const options = getRandomOptions(question, quizState.activeData);
+      const quizArea = document.getElementById('quiz-area');
+
       quizArea.innerHTML = `
         <div class="question-card">
-          <div class="verb-display">
-            <div class="question-label">Verbo italiano</div>
-            <div class="verb-text">${question.verb}</div>
-          </div>
-          <div class="options-container" id="options-container">
-            ${options.map((opt) => `
-              <button class="option-btn" data-verb="${opt.verb}" onclick="selectAnswer('${opt.verb}', '${question.verb}')">
-                ${opt.spanish}
-              </button>
-            `).join('')}
-          </div>
+          <div class="question-label">VERBO ITALIANO</div>
+          <h2 class="verb-text">${question.verb}</h2>
+        </div>
+        <div class="options">
+          ${options.map(opt => `
+            <button
+              class="option-btn"
+              onclick='selectAnswer(this, ${JSON.stringify(String(opt.spanish))}, ${JSON.stringify(String(question.spanish))})'>
+              ${escapeHtml(opt.spanish)}
+            </button>
+          `).join('')}
         </div>
       `;
     }
 
-    function selectAnswer(selectedVerb, correctVerb) {
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+
+    function selectAnswer(button, selectedSpanish, correctSpanish) {
       if (quizState.currentAnswering) return;
       quizState.currentAnswering = true;
-      const buttons = document.querySelectorAll(".option-btn");
+
+      const buttons = Array.from(document.querySelectorAll('.option-btn'));
       buttons.forEach(btn => btn.disabled = true);
-      const selectedBtn = document.querySelector(`[data-verb="${selectedVerb}"]`);
-      const isCorrect = selectedVerb === correctVerb;
+
+      const isCorrect = selectedSpanish === correctSpanish;
       if (isCorrect) {
-        selectedBtn.classList.add("correct");
+        button.classList.add('correct');
       } else {
-        selectedBtn.classList.add("incorrect");
-        document.querySelector(`[data-verb="${correctVerb}"]`).classList.add("correct");
+        button.classList.add('incorrect');
+        const correctBtn = buttons.find(btn => btn.textContent.trim() === correctSpanish);
+        if (correctBtn) correctBtn.classList.add('correct');
       }
-      const verbData = getVerbDataByMode(quizState.currentMode);
-      const correctVerbObj = verbData.find(v => v.verb === correctVerb);
-      quizState.answered.push({ verb: correctVerb, correct: isCorrect });
+
+      quizState.answered.push({ correct: isCorrect });
       updateProgress();
+
       setTimeout(() => {
-        showModal(correctVerbObj);
-      }, 1000);
+        moveToNextQuestion();
+      }, 650);
     }
 
     function updateProgress() {
-      const verbData = getVerbDataByMode(quizState.currentMode);
-      const total = verbData ? verbData.length : 1;
-      const progress = (quizState.answered.length / total) * 100;
-      document.getElementById("progress-fill").style.width = progress + "%";
+      const total = quizState.activeData.length || 100;
+      const correctAnswers = quizState.answered.filter(item => item.correct).length;
+      const incorrectAnswers = quizState.answered.length - correctAnswers;
+      const progressCount = Math.min(quizState.answered.length, total);
+      const progressPercent = total ? (progressCount / total) * 100 : 0;
+
+      document.getElementById('correct-count').textContent = correctAnswers;
+      document.getElementById('incorrect-count').textContent = incorrectAnswers;
+      document.getElementById('question-count').textContent = `${progressCount}/${total}`;
+      document.getElementById('progress-fill').style.width = `${progressPercent}%`;
     }
 
     function moveToNextQuestion() {
-      quizState.currentQuestion++;
+      quizState.currentQuestion += 1;
       quizState.currentAnswering = false;
-      const verbData = getVerbDataByMode(quizState.currentMode);
-      if (quizState.currentQuestion < verbData.length) {
+      if (quizState.currentQuestion < quizState.activeData.length) {
         renderQuestion();
       } else {
         showCompletion();
       }
     }
 
-    function closeModal() {
-      document.getElementById("modal-overlay").classList.remove("active");
-      moveToNextQuestion();
-    }
-
-    function showModal(item) {
-      document.getElementById("modal-title").textContent = item.verb.toUpperCase();
-      document.getElementById("modal-usage").textContent = item.usage;
-      document.getElementById("modal-example").textContent = item.example;
-      document.getElementById("modal-overlay").classList.add("active");
-    }
-
     function showCompletion() {
-      const correctAnswers = quizState.answered.filter(a => a.correct).length;
-      const incorrectAnswers = quizState.answered.filter(a => !a.correct).length;
-      const percentage = Math.round((correctAnswers / quizState.answered.length) * 100);
-      const quizArea = document.getElementById("quiz-area");
-      quizArea.innerHTML = `
-        <div class="completion-screen">
-          <h2>✓ Completato!</h2>
-          <p>${config.completion_message || defaultConfig.completion_message}</p>
-          <div style="background: #f9f9f9; padding: 1.5rem; border-radius: 8px; margin: 1.5rem 0; text-align: center;">
-            <div style="margin-bottom: 1rem;">
-              <div style="font-size: 0.9rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">Respuestas correctas</div>
-              <div style="font-size: 2rem; font-weight: 700; color: #2ecc71;">${correctAnswers}/${quizState.answered.length}</div>
+      const total = quizState.activeData.length;
+      const correctAnswers = quizState.answered.filter(item => item.correct).length;
+      const incorrectAnswers = total - correctAnswers;
+      const score = total ? Math.round((correctAnswers / total) * 100) : 0;
+      const perfect = total > 0 && correctAnswers === total;
+
+      const title = perfect ? 'Perfecto' : 'Completado';
+      const message = perfect
+        ? '¡Increíble! Respondiste correctamente todas las preguntas de este quiz.'
+        : 'Terminaste el quiz. Muy bien hecho. Sigue practicando para mejorar todavía más tu puntuación.';
+      const badgeClass = perfect ? 'perfect' : 'completed';
+
+      document.getElementById('quiz-area').innerHTML = `
+        <div class="completion-card">
+          <div class="completion-badge ${badgeClass}">${title}</div>
+          <h2>${perfect ? '¡Lo hiciste perfecto!' : '¡Quiz finalizado!'} </h2>
+          <p>${message}</p>
+
+          <div class="summary-grid">
+            <div class="summary-item correct">
+              <div class="k">Correctas</div>
+              <div class="v">${correctAnswers}</div>
             </div>
-            <div style="margin-bottom: 1rem;">
-              <div style="font-size: 0.9rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">Respuestas incorrectas</div>
-              <div style="font-size: 1.5rem; font-weight: 700; color: #e74c3c;">${incorrectAnswers}</div>
+            <div class="summary-item incorrect">
+              <div class="k">Incorrectas</div>
+              <div class="v">${incorrectAnswers}</div>
             </div>
-            <div>
-              <div style="font-size: 0.9rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">Porcentaje de aciertos</div>
-              <div style="font-size: 2rem; font-weight: 700; color: #3498db;">${percentage}%</div>
+            <div class="summary-item score">
+              <div class="k">Puntaje</div>
+              <div class="v">${score}%</div>
             </div>
           </div>
-          <button class="restart-btn" onclick="restartQuiz()">Ricomincia</button>
+
+          <button class="primary-btn" onclick="restartSameMode()">Volver a intentarlo</button>
         </div>
       `;
     }
 
-    function restartQuiz() {
+    function restartSameMode() {
+      if (!quizState.currentMode) return goHome();
+      startQuiz(quizState.currentMode);
+    }
+
+    function goHome() {
       quizState = {
         currentQuestion: 0,
         answered: [],
         currentAnswering: false,
-        currentMode: null
+        currentMode: null,
+        activeData: []
       };
+      document.getElementById('mode-selector').classList.remove('hidden');
+      document.getElementById('quiz-mode').classList.remove('active');
+      document.getElementById('quiz-topbar').classList.remove('active');
+      document.getElementById('quiz-area').innerHTML = '';
       updateProgress();
-      document.getElementById("mode-selector").style.display = "flex";
-      document.getElementById("quiz-mode").style.display = "none";
     }
 
-    window.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("game-title").textContent = config.game_title;
-      document.getElementById("instructions").textContent = config.instructions_text;
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('game-title').textContent = config.game_title;
+      document.getElementById('instructions').textContent = config.instructions_text;
+      updateProgress();
     });
 
-
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./service-worker.js").catch((error) => {
-          console.error("Service Worker registration failed:", error);
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js').catch((error) => {
+          console.error('Service Worker registration failed:', error);
         });
       });
     }
   </script>
- </body>
+</body>
 </html>
