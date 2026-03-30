@@ -879,6 +879,8 @@
       usage.textContent = question.usage || 'Sin explicación disponible.';
       example.textContent = question.example || 'Sin ejemplo disponible.';
       overlay.hidden = false;
+      overlay.classList.remove('hidden');
+      overlay.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
 
       nextBtn.onclick = () => {
@@ -968,6 +970,12 @@
     window.addEventListener('DOMContentLoaded', () => {
       document.getElementById('game-title').textContent = config.game_title;
       document.getElementById('instructions').textContent = config.instructions_text;
+      const overlay = document.getElementById('feedback-overlay');
+      if (overlay) {
+        overlay.hidden = true;
+        overlay.classList.add('hidden');
+        overlay.setAttribute('aria-hidden', 'true');
+      }
       updateProgress();
     });
 
@@ -988,7 +996,7 @@
     }
   </script>
 
-    <div id="feedback-overlay" class="feedback-overlay" hidden>
+    <div id="feedback-overlay" class="feedback-overlay hidden" hidden aria-hidden="true">
       <div class="feedback-modal" role="dialog" aria-modal="true" aria-labelledby="feedback-title">
         <h3 id="feedback-title" class="feedback-title">PARLO</h3>
         <div class="feedback-section">
