@@ -863,14 +863,15 @@
       document.getElementById('progress-fill').style.width = `${progressPercent}%`;
     }
 
+    let feedbackNextAction = null;
+
     function showFeedbackModal(question) {
       const overlay = document.getElementById('feedback-overlay');
       const title = document.getElementById('feedback-title');
       const usage = document.getElementById('feedback-usage');
       const example = document.getElementById('feedback-example');
-      const nextBtn = document.getElementById('feedback-next');
 
-      if (!overlay || !title || !usage || !example || !nextBtn || !question) {
+      if (!overlay || !title || !usage || !example || !question) {
         moveToNextQuestion();
         return;
       }
@@ -878,23 +879,32 @@
       title.textContent = String(question.verb || '').toUpperCase();
       usage.textContent = question.usage || 'Sin explicación disponible.';
       example.textContent = question.example || 'Sin ejemplo disponible.';
+      feedbackNextAction = () => {
+        hideFeedbackModal();
+        moveToNextQuestion();
+      };
       overlay.hidden = false;
       overlay.classList.remove('hidden');
       overlay.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
-
-      nextBtn.onclick = () => {
-        hideFeedbackModal();
-        moveToNextQuestion();
-      };
     }
 
     function hideFeedbackModal() {
       const overlay = document.getElementById('feedback-overlay');
-      const nextBtn = document.getElementById('feedback-next');
-      if (overlay) overlay.hidden = true;
-      if (nextBtn) nextBtn.onclick = null;
+      if (overlay) {
+        overlay.hidden = true;
+        overlay.classList.add('hidden');
+        overlay.setAttribute('aria-hidden', 'true');
+      }
       document.body.style.overflow = '';
+    }
+
+    function handleFeedbackNext() {
+      if (typeof feedbackNextAction === 'function') {
+        const action = feedbackNextAction;
+        feedbackNextAction = null;
+        action();
+      }
     }
 
     function moveToNextQuestion() {
@@ -971,10 +981,18 @@
       document.getElementById('game-title').textContent = config.game_title;
       document.getElementById('instructions').textContent = config.instructions_text;
       const overlay = document.getElementById('feedback-overlay');
+      const nextBtn = document.getElementById('feedback-next');
       if (overlay) {
         overlay.hidden = true;
         overlay.classList.add('hidden');
         overlay.setAttribute('aria-hidden', 'true');
+      }
+      if (nextBtn) {
+        nextBtn.addEventListener('click', handleFeedbackNext);
+        nextBtn.addEventListener('touchend', (event) => {
+          event.preventDefault();
+          handleFeedbackNext();
+        }, { passive: false });
       }
       updateProgress();
     });
